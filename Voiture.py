@@ -112,15 +112,16 @@ class Voiture(Problème):
         => pos(t + Δt) = (1/2)*moteur(t)*Δt**2 + v(t)*Δt + pos(t)
     """
     def __init__(
-            self,
-            Δd,
-            Δt,
-            dmax,
-            afficher = False,
-            taille = 8,
-            rayon_braquage = 1,
-            qualité_moteur = 20):
-        self.nb_capteur = 12 # dépend du nb de rayons que j'envoie...
+        self,
+        afficher = False,
+        Δd = 0.01,
+        Δt = 0.01,
+        dmax = 4,
+        taille = 8,
+        rayon_braquage = 1,
+        qualité_moteur = 20
+    ):
+        self.nb_capteurs = 12 # dépend du nb de rayons que j'envoie...
         self.nb_acteurs = 2
         self.Circuit = Circuit(taille)
         # Je met cette ligne pour garder un circuit fixe pour voir
@@ -295,10 +296,10 @@ class Voiture(Problème):
         if self.afficher:
             self.t.clear()
         self.__init__(
+            self.afficher,
             self.Δd,
             self.Δt,
             self.dmax,
-            self.afficher,
             self.taille,
             self.rayon_braquage,
             self.qualité_moteur
@@ -311,31 +312,31 @@ def rotation(vecteur2D, angle): # angle en radians
     return(np.matmul(matrice_rotation, vecteur2D))
 
 
-print("""
-taille_circuit = 8
-affichage = False
-V = Voiture(0.01, 0.01, taille_circuit, affichage)
+#print("""
+#taille_circuit = 8
+#affichage = False
+#V = Voiture(affichage, 0.01, 0.01, taille_circuit)
 
-nb_capteurs = 12
-nb_acteurs = 2
-nb_neurones = 18
-Problème = V
-taille_troupeau = 20
-coef_mutation = 0.03
-nb_tests = 10
-T = Troupeau(
-      nb_capteurs,
-      nb_acteurs,
-      nb_neurones,
-      Problème,
-      taille_troupeau,
-      coef_mutation,
-      nb_tests
-     )
+#nb_capteurs = 12
+#nb_acteurs = 2
+#nb_neurones = 18
+#Problème = V
+#taille_troupeau = 20
+#coef_mutation = 0.03
+#nb_tests = 10
+#T = Troupeau(
+#      nb_capteurs,
+#      nb_acteurs,
+#      nb_neurones,
+#      Problème,
+#      taille_troupeau,
+#      coef_mutation,
+#      nb_tests
+#     )
+#
+#T.évoluer(100)
+#""")
 
-for i in range(5000):
-    T.évoluer()
-""")
 def main():
     V = Voiture(0.01, 0.01, 4, True)
     T = Troupeau(12, 2, 17, V, 60,)
