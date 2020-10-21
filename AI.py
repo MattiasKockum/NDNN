@@ -339,15 +339,19 @@ class TestBench():
     def __init__(
         self,
         problem,
-        nb_herds = 7,
+        nb_herds = 20,
         nb_generations = 20,
-        nb_add_neurons = 3,
+        nb_add_neurons = 9,
         size = 30,
         mutation_coefficent = 0.02,
-        nb_tests = 4,
+        nb_tests = 5,
         **kwargs
     ):
         self.kwargs = kwargs
+        if "slices" in kwargs:
+            self.nb_add_neurons = sum(kwargs["slices"])
+        else:
+            self.nb_add_neurons = nb_add_neurons
         self.series = []
         self.problem = problem
         self.nb_sensors = problem.nb_sensors
@@ -355,7 +359,6 @@ class TestBench():
         self.colors = ["r", "g", "b", "c", "m", "y", "k"]
         self.nb_herds = nb_herds
         self.nb_generations = nb_generations
-        self.nb_add_neurons = nb_add_neurons
         self.size = size
         self.mutation_coefficent = mutation_coefficent
         self.nb_tests = nb_tests
@@ -439,18 +442,11 @@ class TestBench():
 
 print(
 """
-P = Centre_Game(False)
-TB = TestBench(P, slices=[3], regions=[[False, True, False], [False, False, True], [False, False, False]])
-TB.test(3)
-R0 = TB.archives[0][0]
-R1 = TB.archives[1][0]
-R2 = TB.archives[2][0]
-R3 = TB.archives[3][0]
-R0.display()
-R1.display()
-R2.display()
-R3.display()
+P = Car(False)
+TB = TestBench(P, slices=[5, 4], regions=[[False, True, False, False], [False,
+    False, True, False], [False, False, False, True], [False, False, False,
+    False]])
 
-R = Network(2, 2, 3, slices=[3], regions=[[False, True, False], [False, False, True], [False, False, False]])
+TB.test(0)
 """
 )
