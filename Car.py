@@ -8,7 +8,7 @@ The aim of this program is to train a car to drive itself
 
 import numpy as np
 import turtle
-from Markov import *
+from AI import *
 
 class Circuit():
     """
@@ -94,7 +94,7 @@ class Circuit():
               )
 
 
-class Voiture(Problème):
+class Car(Problem):
     """
     A car
     A little bit of physics:
@@ -118,7 +118,7 @@ class Voiture(Problème):
         turning_circle = 1,
         engine_quality = 20
     ):
-        self.nb_captors = 12 # depends on the number of casted rays
+        self.nb_sensors = 12 # depends on the number of casted rays
         self.nb_actors = 2
         self.Circuit = Circuit(size)
         # A fixed circuit if needed
@@ -195,7 +195,7 @@ class Voiture(Problème):
     def continue_condition(self):
         return(not np.array_equal(self.pos_precedente, self.pos))
 
-    def captors(self):
+    def sensors(self):
         return(
             np.array([
                 self.ray(rotation(self.dir, np.pi/3), self.dmax),
@@ -212,7 +212,7 @@ class Voiture(Problème):
                 *self.pos,
                 *self.dir,
                 *self.acceleration,
-                *self.captors(),
+                *self.sensors(),
                 *self.next_pos(),
                 self.points_real_time()
             ]
@@ -310,7 +310,7 @@ def rotation(vecteur2D, angle): # angle en radians
 
 
 def main():
-    V = Voiture(0.01, 0.01, 4, True)
+    V = Car(0.01, 0.01, 4, True)
     T = Troupeau(12, 2, 17, V, 60,)
     C = T.members[0]
     print(V.experience(C))
