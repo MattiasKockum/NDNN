@@ -342,7 +342,7 @@ class TestBench():
         self,
         problem,
         nb_herds = 1,
-        nb_generations = 50,
+        nb_generations = 100,
         nb_add_neurons = 9,
         size = 100,
         mutation_coefficent = 0.0001,
