@@ -110,7 +110,7 @@ class Car(Problem):
     """
     def __init__(
         self,
-        display = False,
+        displayed = False,
         Δd = 0.01,
         Δt = 0.01,
         dmax = 4,
@@ -118,8 +118,6 @@ class Car(Problem):
         turning_circle = 1,
         engine_quality = 20
     ):
-        self.nb_sensors = 12 # depends on the number of casted rays
-        self.nb_actors = 2
         self.Circuit = Circuit(size)
         # A fixed circuit if needed
         """
@@ -146,15 +144,17 @@ class Car(Problem):
         self.dmax = dmax
         self.turning_circle = turning_circle
         self.engine_quality = engine_quality
-        self.display = display
+        self.displayed = displayed
         self.score_max = 0
         self.state_update()
         # An impossible position in order to get into the loop
         self.pos_precedente = np.array([-1, -1])
+        self.nb_sensors = 9 + len(self.captors())
+        self.nb_actors = 2
 
     def experience(self, Chaîne):
-        if self.display:
-            self.do_display()
+        if self.displayed:
+            self.display()
         while self.continue_condition():
             action_Chaîne = Chaîne.action(self.state)
             self.action(*action_Chaîne)
@@ -188,14 +188,14 @@ class Car(Problem):
         else :
             self.speed += self.acceleration*self.Δt
             self.pos = pos_projection
-        if self.display:
+        if self.displayed:
             self.put_down_turtle(self.pos[0], self.pos[1])
         self.state_update()
 
     def continue_condition(self):
         return(not np.array_equal(self.pos_precedente, self.pos))
 
-    def sensors(self):
+    def captors(self):
         return(
             np.array([
                 self.ray(rotation(self.dir, np.pi/3), self.dmax),
@@ -205,14 +205,12 @@ class Car(Problem):
         )
 
     def state_update(self):
-        """
-        """
         self.state = (
             np.array([
                 *self.pos,
                 *self.dir,
                 *self.acceleration,
-                *self.sensors(),
+                *self.captors(),
                 *self.next_pos(),
                 self.points_real_time()
             ]
@@ -225,7 +223,7 @@ class Car(Problem):
 
     def state_pos(self, pos):
         """
-        Sert à obtenir l'state d'un endroit du circuit (mur ou route)
+        Returns the state of a postion (wall or road)
         """
         if (pos[0] < 0
             or self.size < pos[0] + 1
@@ -240,9 +238,9 @@ class Car(Problem):
 
     def ray(self, direction, distance):
         """
-        le ray part de pos dans la direction direction, avance avec un
-        pas de Δd, il renvoie la distance à laquelle il s'arrête :
-        soit celle à un mur, soit quand il a atteint distance
+        The ray starts from pos in the direction direction, go forward
+        with a step Δd, returns the distance at which it stoped : wether
+        it stoped from collision or from max range
         """
         iterator = 0
         while iterator*self.Δd < distance:
@@ -259,14 +257,14 @@ class Car(Problem):
             self.score_max = score_endroit
         return(self.score_max)
 
-    def do_display(self):
+    def display(self):
         self.t = turtle.Turtle()
         self.t.speed(speed = 0)
         self.t.color("brown")
         for x in range(self.size):
             for y in range(self.size):
                 if self.Circuit.road[x, y] == -1:
-                    # On fait un carre
+                    # Making a square
                     self.t.penup()
                     self.put_down_turtle(x, y)
                     self.t.pendown()
@@ -290,10 +288,10 @@ class Car(Problem):
         self.t.setpos((500/self.size)*x - 250, (500/self.size)*y - 250)
 
     def reset(self):
-        if self.display:
+        if self.displayed:
             self.t.clear()
         self.__init__(
-            self.display,
+            self.displayed,
             self.Δd,
             self.Δt,
             self.dmax,
@@ -303,20 +301,26 @@ class Car(Problem):
         )
 
 
-def rotation(vecteur2D, angle): # angle en radians
+def rotation(vecteur2D, angle): # angle in radians
     matrice_rotation = np.array([[np.cos(angle), -np.sin(angle)],
                                  [np.sin(angle), np.cos(angle)]])
     return(np.matmul(matrice_rotation, vecteur2D))
 
 
 def main():
-    V = Car(0.01, 0.01, 4, True)
-    T = Troupeau(12, 2, 17, V, 60,)
-    C = T.members[0]
-    print(V.experience(C))
-    V.t.mainloop()
-    V.t.bye()
+    P = Car(False)
+    TB = TestBench(
+        P,
+        slices=[5, 4],
+        regions=[
+            [False, True, False, False],
+            [False, False, True, False],
+            [False, False, False, True],
+            [False, False, False,False]
+        ])
+    TB.test(0)
 
 if __name__ == "__main__":
     pass
-    #main()
+    main()
+
