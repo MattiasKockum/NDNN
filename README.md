@@ -1,1 +1,1 @@
-# IA-Markov
+# Non Directional Neural Network
