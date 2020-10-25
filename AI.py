@@ -341,12 +341,12 @@ class TestBench():
     def __init__(
         self,
         problem,
-        nb_herds = 10,
+        nb_herds = 1,
         nb_generations = 50,
         nb_add_neurons = 9,
         size = 100,
         mutation_coefficent = 0.0001,
-        nb_tests = 4,
+        nb_tests = 100,
         **kwargs
     ):
         self.kwargs = kwargs
@@ -437,7 +437,7 @@ class TestBench():
             "(4) Problem\n",
             "(5) herd's size\n",
             "(6) mutation_coefficent\n",
-            "(7) nb_tests"
+            "(7) nb_tests\n",
             "(8) colors\n",
             "\n",
             "(1)(2)(3)(4)(5)(6)(7)(8)"
