@@ -3,7 +3,7 @@
 """
 Program written by Mattias Kockum
 On the 15/7/2020
-The aime of this program is to create an AI capable of selective memory
+The aim of this program is to create an AI capable of selective memory
 """
 
 import numpy as np
@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 
 def sigmoid(x):
-	return(2*((1/(1+2.7**-(x)))-0.5))
+	return(2*((1/(1+2.7**(-x)))-0.5))
 
 
 class Problem():
@@ -305,6 +305,9 @@ class Network():
         # Returns the new number of nerons
         return(self.nb_neurons)
 
+    def reset(self):
+        self.values = np.zeros(self.values.shape)
+
     def mutate(self, mutation_coefficent):
         """
         We mutate the Network
@@ -335,16 +338,15 @@ class TestBench():
     """
     A test bench to verify everything works fine
     """
-
     def __init__(
         self,
         problem,
-        nb_herds = 20,
-        nb_generations = 20,
+        nb_herds = 10,
+        nb_generations = 50,
         nb_add_neurons = 9,
-        size = 30,
-        mutation_coefficent = 0.02,
-        nb_tests = 5,
+        size = 100,
+        mutation_coefficent = 0.0001,
+        nb_tests = 4,
         **kwargs
     ):
         self.kwargs = kwargs
@@ -364,13 +366,21 @@ class TestBench():
         self.nb_tests = nb_tests
         self.values_simple = self.nb_herds*[1]
         self.values_nb_add_neurons = [0, 1, 2, 3, 4, 5, 6]
-        self.values_sizes = [2, 5, 10, 15, 20, 30]
-        self.values_mutation_coefficients = [0.01, 0.005, 0.002, 0.001]
-        self.values_nb_tests = [1, 2, 3, 4, 5, 6]
+        self.values_sizes = [5, 10, 50, 100, 500, 1000]
+        self.values_mutation_coefficients = [0.0001, 0.000005, 0.00001]
+        self.values_nb_tests = [2, 4, 8, 16, 32, 64]
         self.archives = []
 
-    def represent(self):
-        for indice, serie in enumerate(self.series):
+    def demo(self):
+        self.problem.displayed = True
+        self.problem.reset()
+
+    def display(self, archive = False):
+        if archive:
+            display_series = [i[1][0] for i in self.archives]
+        else:
+            display_series = self.series
+        for indice, serie in enumerate(display_series):
             plt.plot(
                 [k for k in range(len(serie))],
                 serie,
@@ -427,26 +437,16 @@ class TestBench():
             "(4) Problem\n",
             "(5) herd's size\n",
             "(6) mutation_coefficent\n",
-            "(7) colors\n",
+            "(7) nb_tests"
+            "(8) colors\n",
             "\n",
-            "(1)(2)(3)(4)(5)(6)(7)"
+            "(1)(2)(3)(4)(5)(6)(7)(8)"
         )
         for i in range(len(values)):
             print(*array_inputs[i], self.colors[i%len(self.colors)])
             T = Herd(*array_inputs[i], **self.kwargs)
             self.series.append(T.evolve(nb_generations))
             self.archives.append([T.members[0], self.series])
-        self.represent()
+        self.display()
         self.series = []
 
-
-print(
-"""
-P = Car(False)
-TB = TestBench(P, slices=[5, 4], regions=[[False, True, False, False], [False,
-    False, True, False], [False, False, False, True], [False, False, False,
-    False]])
-
-TB.test(0)
-"""
-)
