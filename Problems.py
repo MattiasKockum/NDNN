@@ -122,7 +122,7 @@ def main():
             [False, False, False, True],
             [False, False, False, False]
         ])
-    TB.test(0)
+    TB.test(4)
 
 if __name__ == "__main__":
     main()

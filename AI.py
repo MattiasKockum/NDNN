@@ -342,7 +342,7 @@ class TestBench():
         self,
         problem,
         nb_herds = 1,
-        nb_generations = 100,
+        nb_generations = 20,
         nb_add_neurons = 9,
         size = 100,
         mutation_coefficent = 0.0001,
@@ -368,7 +368,7 @@ class TestBench():
         self.values_nb_add_neurons = [0, 1, 2, 3, 4, 5, 6]
         self.values_sizes = [5, 10, 50, 100, 500, 1000]
         self.values_mutation_coefficients = [0.0001, 0.000005, 0.00001]
-        self.values_nb_tests = [2, 4, 8, 16, 32, 64]
+        self.values_nb_tests = [2, 4, 8, 16, 32, 64, 128, 256, 512]
         self.archives = []
 
     def demo(self):
