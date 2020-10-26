@@ -135,6 +135,7 @@ class Car(Problem):
             ]
         )
         """
+        self.path_len = self.Circuit.path_len
         self.pos = self.Circuit.pos0
         self.dir = self.Circuit.dir0
         self.speed = np.array([0.0, 0.0])
@@ -256,7 +257,7 @@ class Car(Problem):
         score_endroit = self.state_pos(self.pos)
         if score_endroit > self.score_max:
             self.score_max = score_endroit
-        return(self.score_max)
+        return(self.score_max/self.path_len)
 
     def display(self):
         self.t = turtle.Turtle()
