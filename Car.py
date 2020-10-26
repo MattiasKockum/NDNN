@@ -19,7 +19,7 @@ class Circuit():
         self.pos0 = np.array([0.5, 0.5])
         self.dir0 = np.array([1.0, 0.0])
         self.road, self.path = self.road_generation()
-        self.path_len = len(path)
+        self.path_len = len(self.path)
 
     def __repr__(self):
         s = ""
@@ -322,6 +322,5 @@ def main():
     TB.test(0)
 
 if __name__ == "__main__":
-    pass
     main()
 
