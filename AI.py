@@ -351,7 +351,7 @@ class TestBench():
         nb_add_neurons = 9,
         size = 100,
         mutation_coefficent = 0.0001,
-        mutation_amplitude = 0.0001,
+        mutation_amplitude = 0.01,
         nb_tests = 100,
         **kwargs
     ):
@@ -375,6 +375,7 @@ class TestBench():
         self.values_nb_add_neurons = [0, 1, 2, 3, 4, 5, 6]
         self.values_sizes = [5, 10, 50, 100, 500, 1000]
         self.values_mutation_coefficients = [0.0001, 0.000005, 0.00001]
+        self.values_mutation_amplitude = [0.01, 0.005, 0.001]
         self.values_nb_tests = [2, 4, 8, 16, 32, 64, 128, 256, 512]
         self.archives = []
 
@@ -429,7 +430,7 @@ class TestBench():
             array_inputs[:,5] = values
         if mode in [4, "coefficient_amplitude"]:
             if values == None:
-                values = self.values_mutation_coefficients
+                values = self.values_mutation_amplitude
             array_inputs = np.array([base for i in range(len(values))])
             array_inputs[:,6] = values
         if mode in [5, "nb_tests"]:
@@ -443,7 +444,6 @@ class TestBench():
             array_inputs = np.array([base for i in range(len(values))])
             array_inputs = values
         print(
-            "Testing",
             "\n",
             "(1) nb_captors\n",
             "(2) nb_actors\n",

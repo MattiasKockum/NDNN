@@ -185,13 +185,21 @@ def main():
     P = Centre_Game_2(False)
     TB = TestBench(
         P,
+        nb_herds = 1,
+        nb_generations = 100,
+        nb_add_neurons = 9,
+        size = 5,
+        mutation_coefficent = 0.0001,
+        mutation_amplitude = 0.01,
+        nb_tests = 16,
         slices=[3, 3],
         regions=[
             [False, True, False, False],
             [False, False, True, False],
             [False, False, False, True],
             [False, False, False, False]
-        ])
+        ]
+    )
     TB.test(4)
     """
     P = Gradient_Descent_Test()
