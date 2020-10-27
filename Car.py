@@ -319,7 +319,8 @@ def main():
             [False, False, True, False],
             [False, False, False, True],
             [False, False, False,False]
-        ])
+        ]
+    )
     TB.test(0)
 
 if __name__ == "__main__":

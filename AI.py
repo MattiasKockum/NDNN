@@ -65,6 +65,7 @@ class Herd():
         Problem,
         size = 30,
         mutation_coefficent = 0.001,
+        mutation_amplitude = 0.001,
         nb_tests = 10,
         **kwargs
     ):
@@ -73,6 +74,7 @@ class Herd():
         self.nb_actors = nb_actors
         self.nb_add_neurons = nb_add_neurons
         self.mutation_coefficent = mutation_coefficent
+        self.mutation_amplitude = mutation_amplitude
         self.Problem = Problem
         self.members = [
             Network(nb_sensors, nb_actors, nb_add_neurons, **kwargs)
@@ -98,7 +100,10 @@ class Herd():
             ]
             self.members = new_members
             for network in self.members:
-                network.mutate(self.mutation_coefficent)
+                network.mutate(
+                    self.mutation_coefficent,
+                    self.mutation_amplitude
+                )
             self.array_scores.append(sum(self.score)/self.size)
         return(self.array_scores)
 
@@ -167,7 +172,7 @@ class Network():
             # regions = array of 0 and 1 if the group shall exist
             self.slices = [nb_sensors] + kwargs["slices"] + [nb_actors]
             self.regions = kwargs["regions"]
-            self.squarred()
+            self.squared()
         elif "weight" not in kwargs and "bias" not in kwargs:
             self.random_set_up()
         elif (
@@ -188,7 +193,7 @@ class Network():
         )
         self.bias = np.random.rand(self.nb_neurons) - 0.5
 
-    def squarred(self):
+    def squared(self):
         self.directive = [[0]*len(self.slices)]*len(self.slices)
         self.slices_sum = [0]
         for i in self.slices:
@@ -308,7 +313,7 @@ class Network():
     def reset(self):
         self.values = np.zeros(self.values.shape)
 
-    def mutate(self, mutation_coefficent):
+    def mutate(self, mutation_coefficent, mutation_amplitude):
         """
         We mutate the Network
         """
@@ -321,13 +326,13 @@ class Network():
             ):
                 # If the iterator corresponds to a weight, we modify it
                 if i < self.nb_neurons**2:
-                    self.weights[i//self.nb_neurons][i%self.nb_neurons] = (
-                        np.random.rand() - 0.5
+                    self.weights[i//self.nb_neurons][i%self.nb_neurons] += (
+                        mutation_amplitude*(np.random.rand() - 0.5)
                     )
                 # Elsif it corresponds to a bias we modify it
                 elif i < self.nb_neurons*(self.nb_neurons + 1):
-                    self.bias[i - self.nb_neurons**2] = (
-                        np.random.rand() - 0.5
+                    self.bias[i - self.nb_neurons**2] += (
+                        mutation_amplitude*(np.random.rand() - 0.5)
                     )
                 # Else we add a neuron (NOT IMPLEMENTED YET)
                 else:
@@ -346,6 +351,7 @@ class TestBench():
         nb_add_neurons = 9,
         size = 100,
         mutation_coefficent = 0.0001,
+        mutation_amplitude = 0.0001,
         nb_tests = 100,
         **kwargs
     ):
@@ -363,6 +369,7 @@ class TestBench():
         self.nb_generations = nb_generations
         self.size = size
         self.mutation_coefficent = mutation_coefficent
+        self.mutation_amplitude = mutation_amplitude
         self.nb_tests = nb_tests
         self.values_simple = self.nb_herds*[1]
         self.values_nb_add_neurons = [0, 1, 2, 3, 4, 5, 6]
@@ -398,6 +405,7 @@ class TestBench():
             self.problem,
             self.size,
             self.mutation_coefficent,
+            self.mutation_amplitude,
             self.nb_tests
         ]
         if mode in [0, "simple"]:
@@ -419,17 +427,23 @@ class TestBench():
                 values = self.values_mutation_coefficients
             array_inputs = np.array([base for i in range(len(values))])
             array_inputs[:,5] = values
-        if mode in [4, "nb_tests"]:
+        if mode in [4, "coefficient_amplitude"]:
+            if values == None:
+                values = self.values_mutation_coefficients
+            array_inputs = np.array([base for i in range(len(values))])
+            array_inputs[:,6] = values
+        if mode in [5, "nb_tests"]:
             if values == None:
                 values = self.values_nb_tests
             array_inputs = np.array([base for i in range(len(values))])
             array_inputs[:,6] = values
-        if mode in [5, "multiple"]:
+        if mode in [6, "multiple"]:
             if values == None:
                 raise(ValueError("An array must be in input"))
             array_inputs = np.array([base for i in range(len(values))])
             array_inputs = values
         print(
+            "Testing",
             "\n",
             "(1) nb_captors\n",
             "(2) nb_actors\n",
@@ -437,10 +451,11 @@ class TestBench():
             "(4) Problem\n",
             "(5) herd's size\n",
             "(6) mutation_coefficent\n",
-            "(7) nb_tests\n",
-            "(8) colors\n",
+            "(7) mutation_amplitude\n",
+            "(8) nb_tests\n",
+            "(9) colors\n",
             "\n",
-            "(1)(2)(3)(4)(5)(6)(7)(8)"
+            "(1)(2)(3)(4)(5)(6)(7)(8)(9)"
         )
         for i in range(len(values)):
             print(*array_inputs[i], self.colors[i%len(self.colors)])
