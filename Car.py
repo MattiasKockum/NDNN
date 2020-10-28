@@ -313,6 +313,13 @@ def main():
     P = Car(False)
     TB = TestBench(
         P,
+        1, # nb_herds
+        100, # nb_generations
+        9, # nb_add_neurons
+        30, # size
+        0.5, # mutation_coefficient
+        0.01, # mutation_amplitude
+        5, # nb_tests
         slices=[5, 4],
         regions=[
             [False, True, False, False],

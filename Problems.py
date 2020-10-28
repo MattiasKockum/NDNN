@@ -216,15 +216,15 @@ def main():
     TB.test(5)
     """
     P = Gradient_Descent_Test()
-    size = 30
+    size = 10
     TB = TestBench(
         P, # Problem
         1, # nb_herds
-        100, # nb_generations
+        90, # nb_generations
         0, # nb_add_neurons
         size, # size
-        0.5, # mutation_coefficient
-        0.1, # mutation_amplitude
+        1, # mutation_coefficient
+        0.05, # mutation_amplitude
         1, # nb_tests
     )
     TB.test(0)
