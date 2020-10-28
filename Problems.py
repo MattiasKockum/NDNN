@@ -158,12 +158,23 @@ class Gradient_Descent_Test():
         Z = gradient(X, Y)
 
         # Plot the surface.
-        surf = ax.plot_wireframe(X, Y, Z)
+        surf = ax.plot_wireframe(X, Y, Z, color="#0F0F0F0F")
 
         xs = [i[0] for i in self.results]
         ys = [i[1] for i in self.results]
         zs = [gradient(x, y) for x, y in zip(xs, ys)]
-        ax.plot(xs, ys, zs, color="g")
+        for gen in range(0, len(zs), step):
+            ax.scatter(
+                xs[gen:gen+step],
+                ys[gen:gen+step],
+                zs[gen:gen+step],
+                color=(
+                    "#"
+                    + hex(0)[2:]
+                    + hex(0)[2:]
+                    + hex(int(256*gen/len(zs)))[2:]
+                )
+            )
 
         plt.show()
 
@@ -171,7 +182,8 @@ class Gradient_Descent_Test():
 def gradient(X, Y):
     return(
         + 1*np.exp(-(((X-0)/0.2)**2+((Y+0)/0.2)**2))
-        #+ 2*np.exp(-(((X-10)/10)**2+((Y+10)/10)**2))
+        + 1.2*np.exp(-(((X-0.2)/0.1)**2+((Y+0.2)/0.1)**2))
+        + 1.4*np.exp(-(((X+0.2)/0.05)**2+((Y+0.2)/0.05)**2))
         #+ 1*np.exp(-(((X-3)/2)**2+((Y+3)/3)**2))
         #+ 1*np.exp(-(((X+2)/1)**2+((Y-2)/2)**2))
         #+ 1*np.exp(-(((X-2)/3)**2+((Y+5)/1)**2))
@@ -182,13 +194,14 @@ def gradient(X, Y):
     )
 
 def main():
+    """
     P = Centre_Game_2(False)
     TB = TestBench(
         P,
         nb_herds = 1,
-        nb_generations = 100,
+        nb_generations = 50,
         nb_add_neurons = 9,
-        size = 5,
+        size = 50,
         mutation_coefficent = 0.0001,
         mutation_amplitude = 0.01,
         nb_tests = 16,
@@ -200,22 +213,23 @@ def main():
             [False, False, False, False]
         ]
     )
-    TB.test(4)
+    TB.test(5)
     """
     P = Gradient_Descent_Test()
+    size = 30
     TB = TestBench(
         P, # Problem
         1, # nb_herds
         100, # nb_generations
         0, # nb_add_neurons
-        100, # size
-        0.01, # mutation_coefficient
-        0.001 # mutation_amplitude
+        size, # size
+        0.5, # mutation_coefficient
+        0.1, # mutation_amplitude
+        1, # nb_tests
     )
     TB.test(0)
-    P.display()
+    P.display(size)
     return(P.results)
-    """
 
 if __name__ == "__main__":
     pass
