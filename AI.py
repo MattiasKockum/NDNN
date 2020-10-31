@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 
 def sigmoid(x):
-	return(2*((1/(1+2.7**(-x)))-0.5))
+	return(2*((1/(1+np.e**(-x)))-0.5))
 
 def extend(array, n):
     r = []
@@ -27,37 +27,70 @@ class Problem(object):
     """
     The frame of any "live" problem
     """
-    def __init__(self, warning = True):
-        self.warning = warning
+    def __init__(self):
         self.nb_sensors = 1
         self.nb_actors = 1
-        if self.warning:
-            print("Warning  : __init__ was not fully configured") 
+        self.period = 1
+        print("Warning  : __init__ was not fully configured") 
 
-    def action(self, inputs):
-        if self.warning:
-            print("Warning  : action was not fully configured")
-        pass
-
-    def state(self):
-        if self.warning:
-            print("Warning  : action was not fully configured")
-        return(np.array([1]))
-
-    def experience(self, Chaîne):
-        if self.warning:
-            print("Warning  : experience was not fully configured")
+    def experience(self, Network):
+        """
+        Computes the actions of a network on the problem
+        This is the main function of a problem
+        """
+        print("Warning  : experience was not fully configured")
+        while not self.end_condition():
+            self.action(*Network.process(self.state(), self.period))
         score = self.score_real_time()
         self.reset()
         return(score)
 
+    def end_condition(self):
+        """
+        True if the Problem is finished for whatever reason
+        False if it goes on
+        """
+        print("Warning  : end_condition was not fully configured")
+        return(True)
+
+    def state(self):
+        """
+        Returns the state of the problem
+        """
+        print("Warning  : state was not fully configured")
+        return(np.array([1]))
+
+    # Other state related functions should be there
+
     def score_real_time(self):
-        if self.warning:
-            print("Warning score_real_time was not fully configured")
+        """
+        Returns the score of the problem at the moment
+        """
+        print("Warning score_real_time was not fully configured")
         return(0)
 
+    def action(self, input_data):
+        """
+        Computes the consequences of the input_data on the problem
+        """
+        print("Warning  : action was not fully configured")
+        pass
+
+    # Other action related functions should be put here
+
+    def display(self):
+        """
+        Shows how things are doing
+        """
+        print("Warning : experience was not fully configured")
+
+    # Other display functions should be put here
+
     def reset(self):
-        self.__init__(self.warning)
+        """
+        Resets the problem
+        """
+        self.__init__()
 
 
 class Herd(object):
@@ -275,7 +308,7 @@ class Network(object):
     def input(self, values_inputs):
         self.values[:self.nb_sensors] += values_inputs
 
-    def sortie(self):
+    def output(self):
         return(self.values[-self.nb_actors:])
 
     def iteration(self):
@@ -286,13 +319,14 @@ class Network(object):
             np.matmul(self.weights, self.values)
             + self.bias)
 
-    def action(self, input):
+    def process(self, input_data, nb_iterations=1):
         """
-        What the network does over one iteration
+        What the network does
         """
-        self.input(input)
-        self.iteration()
-        return(self.sortie())
+        self.input(input_data)
+        for i in range(nb_iterations):
+            self.iteration()
+        return(self.output())
 
     def add_neurons(self, add_neurons=1):
         """
@@ -477,9 +511,9 @@ class TestBench(object):
         )
         for i in range(len(values)):
             print(*array_inputs[i], self.colors[i%len(self.colors)])
-            T = Herd(*array_inputs[i], **self.kwargs)
-            self.series.append(T.evolve(nb_generations))
-            self.archives.append([T.members[0], self.series])
+            H = Herd(*array_inputs[i], **self.kwargs)
+            self.series.append(H.evolve(nb_generations))
+            self.archives.append([H.members[0], self.series])
         self.display()
         self.series = []
 

@@ -10,6 +10,13 @@ import numpy as np
 import turtle
 from AI import *
 
+
+def rotation(vecteur2D, angle): # angle in radians
+    matrice_rotation = np.array([[np.cos(angle), -np.sin(angle)],
+                                 [np.sin(angle), np.cos(angle)]])
+    return(np.matmul(matrice_rotation, vecteur2D))
+
+
 class Circuit():
     """
     A circuit for cars
@@ -41,7 +48,7 @@ class Circuit():
         pb = 0 # for not getting stuck
         x = 0
         y = 0
-        while self.end_condition(i, x, y):
+        while not self.end_condition(i, x, y):
             direction = np.random.randint(5)
             if direction == 0:
                 if y + 1 < self.size:
@@ -117,85 +124,61 @@ class Car(Problem):
         dmax = 4,
         size = 8,
         turning_circle = 1,
-        engine_quality = 20
+        engine_quality = 20,
+        circuit = None,
+        period = 1
     ):
-        self.Circuit = Circuit(size)
-        # A fixed circuit if needed
-        """
-        self.Circuit.road = np.array(
-            [
-                [ 0.,  1.,  2., -1., -1., -1., -1., -1.],
-                [-1., -1.,  3., -1., -1., -1., -1., -1.],
-                [-1., -1.,  4., -1., -1., -1., -1., -1.],
-                [-1., -1.,  5., -1., -1., -1., -1., -1.],
-                [-1., -1.,  6.,  7.,  8., -1., -1., -1.],
-                [-1., -1., -1., -1.,  9., -1., -1., -1.],
-                [-1., -1., -1., -1., 10., -1., -1., -1.],
-                [-1., -1., -1., -1., 11., -1., -1., -1.]
-            ]
-        )
-        """
+        # Circuit code
+        self.size = size
+        if circuit == None:
+            self.Circuit = Circuit(size)
+        else:
+            self.Circuit = circuit
         self.path_len = self.Circuit.path_len
         self.pos = self.Circuit.pos0
         self.dir = self.Circuit.dir0
+        # Physics
         self.speed = np.array([0.0, 0.0])
         self.acceleration = np.array([0.0, 0.0]) 
-        self.size = size
         self.Δd = Δd
         self.Δt = Δt
+        # Car
         self.dmax = dmax
         self.turning_circle = turning_circle
         self.engine_quality = engine_quality
+        # Misc
         self.displayed = displayed
         self.score_max = 0
-        self.state_update()
         # An impossible position in order to get into the loop
-        self.pos_precedente = np.array([-1, -1])
+        self.previous_pos = np.array([-1, -1])
+        # Network info
         self.nb_sensors = 9 + len(self.captors())
         self.nb_actors = 2
+        self.period = period
 
-    def experience(self, Chaîne):
+    def experience(self, Network):
         if self.displayed:
             self.display()
-        while self.continue_condition():
-            action_Chaîne = Chaîne.action(self.state)
-            self.action(*action_Chaîne)
-        score = self.points_real_time()
+        while not self.end_condition():
+            self.action(*Network.process(self.state(), self.period))
+        score = self.score_real_time()
         self.reset()
         return(score)
 
-    def action(self, pedale, volant):
-        self.acceleration += self.engine_quality*pedale*self.dir
-        self.dir = rotation(self.dir, self.turning_circle*volant)
-        pos_projection = (
-            (1/2)*self.acceleration*self.Δt**2
-            + self.speed*self.Δt
-            + self.pos
-        )
-        direction_projection = self.pos - pos_projection
-        distance_projection = np.linalg.norm(direction_projection)
-        drived_distance = self.ray(
-            direction_projection,
-            distance_projection
-        )
-        self.pos_precedente = self.pos
-        if drived_distance != distance_projection:
-            # On se prend un obstacle
-            self.speed = np.array([0.0, 0.0])
-            norm_dir = (
-                direction_projection
-                /np.linalg.norm(direction_projection)
-            )
-            self.pos += norm_dir*drived_distance
-        else :
-            self.speed += self.acceleration*self.Δt
-            self.pos = pos_projection
-        if self.displayed:
-            self.put_down_turtle(self.pos[0], self.pos[1])
-        self.state_update()
+    def end_condition(self):
+        return(not np.array_equal(self.previous_pos, self.pos))
 
-    def continue_condition(self):
-        return(not np.array_equal(self.pos_precedente, self.pos))
+    def state(self):
+        return(
+            np.array([
+                *self.pos,
+                *self.dir,
+                *self.acceleration,
+                *self.captors(),
+                *self.next_pos(),
+                self.score_real_time()
+            ]
+        ))
 
     def captors(self):
         return(
@@ -205,38 +188,6 @@ class Car(Problem):
                 self.ray(self.dir, self.dmax)
             ])
         )
-
-    def state_update(self):
-        self.state = (
-            np.array([
-                *self.pos,
-                *self.dir,
-                *self.acceleration,
-                *self.captors(),
-                *self.next_pos(),
-                self.points_real_time()
-            ]
-        ))
-
-    def next_pos(self):
-        if self.points_real_time() + 1 < len(self.Circuit.path):
-            return(self.Circuit.path[int(self.points_real_time()) + 1])
-        return((-1, -1))
-
-    def state_pos(self, pos):
-        """
-        Returns the state of a postion (wall or road)
-        """
-        if (pos[0] < 0
-            or self.size < pos[0] + 1
-            or pos[1] < 0
-            or self.size < pos[1] + 1
-           ):
-            return(-1)
-        return(self.Circuit.road[
-            int(np.floor(pos[0])),
-            int(np.floor(pos[1]))
-        ])
 
     def ray(self, direction, distance):
         """
@@ -253,11 +204,66 @@ class Car(Problem):
                 return((iterator - 1)*self.Δd)
         return(distance)
 
-    def points_real_time(self):
-        score_endroit = self.state_pos(self.pos)
-        if score_endroit > self.score_max:
-            self.score_max = score_endroit
+    def state_pos(self, pos):
+        """
+        Returns the state of a postion (wall or road)
+        """
+        if (pos[0] < 0
+            or self.size < pos[0] + 1
+            or pos[1] < 0
+            or self.size < pos[1] + 1
+           ):
+            return(-1)
+        return(self.Circuit.road[
+            int(np.floor(pos[0])),
+            int(np.floor(pos[1]))
+        ])
+
+    def next_pos(self):
+        if self.score_real_time() + 1 < len(self.Circuit.path):
+            return(self.Circuit.path[int(self.score_real_time()) + 1])
+        return((-1, -1))
+
+    def score_real_time(self):
+        """
+        Returns how far the car has gone, even if it turned back
+        """
+        score_here = self.state_pos(self.pos)
+        if score_here > self.score_max:
+            self.score_max = score_here
         return(self.score_max/self.path_len)
+
+    def action(self, pedale, volant):
+        self.acceleration += self.engine_quality*pedale*self.dir
+        self.dir = rotation(self.dir, self.turning_circle*volant)
+        # The position at which the car should arive without any obstacle
+        pos_projection = (
+            (1/2)*self.acceleration*self.Δt**2
+            + self.speed*self.Δt
+            + self.pos
+        )
+        # The vector the car is following at the moment
+        direction_projection = self.pos - pos_projection
+        distance_projection = np.linalg.norm(direction_projection)
+        drived_distance = self.ray(
+            direction_projection,
+            distance_projection
+        )
+        self.previous_pos = self.pos
+        if drived_distance != distance_projection:
+            # Hit an obstacle !
+            self.speed = np.array([0.0, 0.0])
+            norm_dir = (
+                direction_projection
+                /np.linalg.norm(direction_projection)
+            )
+            self.pos += norm_dir*drived_distance
+        else :
+            # No obstacle encountered
+            self.speed += self.acceleration*self.Δt
+            self.pos = pos_projection
+        if self.displayed:
+            self.put_down_turtle(self.pos[0], self.pos[1])
 
     def display(self):
         self.t = turtle.Turtle()
@@ -301,12 +307,6 @@ class Car(Problem):
             self.turning_circle,
             self.engine_quality
         )
-
-
-def rotation(vecteur2D, angle): # angle in radians
-    matrice_rotation = np.array([[np.cos(angle), -np.sin(angle)],
-                                 [np.sin(angle), np.cos(angle)]])
-    return(np.matmul(matrice_rotation, vecteur2D))
 
 
 def main():

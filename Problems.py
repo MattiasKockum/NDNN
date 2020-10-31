@@ -27,6 +27,7 @@ class Centre_Game_1(Problem):
         self.y = np.random.rand() - 0.5
         self.displayed = displayed
         self.nb_remaining_actions = 10
+        self.period = 1
         if displayed:
             self.t = turtle.Turtle()
             self.t.speed(speed = 0)
@@ -52,12 +53,12 @@ class Centre_Game_1(Problem):
         """
         while self.nb_remaining_actions > 0:
             self.nb_remaining_actions -= 1
-            self.action(*Network.action(self.state()))
-        score = self.points_real_time()
+            self.action(*Network.process(self.state(), self.period))
+        score = self.score_real_time()
         self.reset()
         return(score)
 
-    def points_real_time(self):
+    def score_real_time(self):
         return(1/(1 + (self.x**2 + self.y**2)))
 
     def reset(self):
@@ -77,6 +78,7 @@ class Centre_Game_2(Problem):
         self.y = np.random.rand() - 0.5
         self.displayed = displayed
         self.nb_remaining_actions = 10
+        self.period = 1
         if displayed:
             self.display()
 
@@ -105,12 +107,12 @@ class Centre_Game_2(Problem):
         """
         while self.nb_remaining_actions > 0:
             self.nb_remaining_actions -= 1
-            self.action(*Network.action(self.state()))
-        score = self.points_real_time()
+            self.action(*Network.process(self.state(), self.period))
+        score = self.score_real_time()
         self.reset()
         return(score)
 
-    def points_real_time(self):
+    def score_real_time(self):
         return(1/(1 + (self.x**2 + self.y**2)))
 
     def reset(self):
@@ -193,10 +195,6 @@ def gradient(X, Y):
         #+ 1*np.exp(-(((X-2)/2)**2+((Y+3)/3)**2))
     )
 
-def main():
-    #main_test_game2()
-    main_test_gradient()
-
 def main_test_gradient(
     nb_herds = 1,
     nb_generations = 900,
@@ -206,7 +204,7 @@ def main_test_gradient(
     mutation_amplitude = 0.01,
     nb_tests = 1
     ):
-    P = Gradient_Descent_Test()
+    P = Gradient_Descent_Test([])
     TB = TestBench(
         P, # Problem
         nb_herds,
@@ -226,12 +224,12 @@ def main_test_game2():
     TB = TestBench(
         P,
         nb_herds = 1,
-        nb_generations = 50,
+        nb_generations = 5,
         nb_add_neurons = 9,
-        size = 50,
+        size = 5,
         mutation_coefficent = 0.0001,
         mutation_amplitude = 0.01,
-        nb_tests = 16,
+        nb_tests = 5,
         slices=[3, 3],
         regions=[
             [False, True, False, False],
@@ -241,6 +239,11 @@ def main_test_game2():
         ]
     )
     TB.test(5)
+
+def main():
+    #main_test_game2()
+    #main_test_gradient(1, 9, 0, 100, 1, 0.01, 1)
+    main_test_gradient()
 
 
 if __name__ == "__main__":
