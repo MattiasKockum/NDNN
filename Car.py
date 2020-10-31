@@ -166,7 +166,7 @@ class Car(Problem):
         return(score)
 
     def end_condition(self):
-        return(not np.array_equal(self.previous_pos, self.pos))
+        return(np.array_equal(self.previous_pos, self.pos))
 
     def state(self):
         return(
