@@ -103,10 +103,10 @@ class Herd(object):
         nb_actors,
         nb_add_neurons,
         Problem,
-        size = 30,
-        mutation_coefficent = 0.001,
+        size = 5,
+        mutation_coefficent = 0.1,
         mutation_amplitude = 0.001,
-        nb_tests = 10,
+        nb_tests = 2,
         **kwargs
     ):
         self.size = size
@@ -159,18 +159,12 @@ class Herd(object):
         self.score = np.zeros(self.size)
         self.members_pool = extend(self.members, self.nb_tests)
         for index, member in enumerate(self.members_pool):
-            member_s_points = (
-                sum(
-                    [
-                        self.Problem.experience(member)
-                        for k in range(self.nb_tests)
-                    ]
-                )
-            )
+            member_s_points = self.Problem.experience(member)
             if member_s_points > 0:
                 self.score[index//self.nb_tests] += member_s_points
             else:
                 self.score[index//self.nb_tests] += 0
+            print(self.score)
         self.score /= self.nb_tests
         if list(self.score) == list(np.zeros(self.size)):
             self.score = np.ones(self.size)
@@ -404,7 +398,7 @@ class TestBench(object):
         size = 100,
         mutation_coefficent = 0.0001,
         mutation_amplitude = 0.01,
-        nb_tests = 100,
+        nb_tests = 2,
         **kwargs
     ):
         self.kwargs = kwargs

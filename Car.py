@@ -119,10 +119,10 @@ class Car(Problem):
     def __init__(
         self,
         displayed = False,
+        size = 8,
         Δd = 0.01,
         Δt = 0.01,
         dmax = 4,
-        size = 8,
         turning_circle = 1,
         engine_quality = 20,
         circuit = None,
@@ -300,26 +300,26 @@ class Car(Problem):
             self.t.clear()
         self.__init__(
             self.displayed,
+            self.size,
             self.Δd,
             self.Δt,
             self.dmax,
-            self.size,
             self.turning_circle,
             self.engine_quality
         )
 
 
 def main():
-    P = Car(False)
+    P = Car(True, 4)
     TB = TestBench(
         P,
         1, # nb_herds
-        100, # nb_generations
+        5, # nb_generations
         9, # nb_add_neurons
-        30, # size
+        4, # size
         0.5, # mutation_coefficient
         0.005, # mutation_amplitude
-        5, # nb_tests
+        3, # nb_tests
         slices=[5, 4],
         regions=[
             [False, True, False, False],
