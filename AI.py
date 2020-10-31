@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-
 """
 Program written by Mattias Kockum
 On the 15/7/2020
-The aim of this program is to create an AI capable of selective memory
-This one is made to parallelize tasks
+The aim of this program is to create an AI
+    capable of selective memory
+    capable of solving real time problems fast
+    capable of simulating a Turing Machine
+
+The training is parallelized
 """
+
 
 import numpy as np
 import copy
@@ -15,6 +19,9 @@ import matplotlib.pyplot as plt
 
 def sigmoid(x):
 	return(2*((1/(1+np.e**(-x)))-0.5))
+
+def gaussian(x, a, b, c):
+    return(a*np.exp(-(x-b)**2/2*c**2))
 
 def extend(array, n):
     r = []
@@ -109,19 +116,19 @@ class Herd(object):
         nb_tests = 2,
         **kwargs
     ):
-        self.size = size
         self.nb_sensors = nb_sensors
         self.nb_actors = nb_actors
         self.nb_add_neurons = nb_add_neurons
+        self.Problem = Problem
+        self.size = size
         self.mutation_coefficent = mutation_coefficent
         self.mutation_amplitude = mutation_amplitude
-        self.Problem = Problem
-        self.Problem_pool = extend([self.Problem], self.size)
+        self.nb_tests = nb_tests
+        self.Problem_pool = extend([self.Problem], self.size*self.nb_tests)
         self.members = [
             Network(nb_sensors, nb_actors, nb_add_neurons, **kwargs)
             for i in range(size)
         ]
-        self.nb_tests = nb_tests
         self.array_scores = []
 
     def evolve(self, nb_generations):
@@ -159,7 +166,7 @@ class Herd(object):
         self.score = np.zeros(self.size)
         self.members_pool = extend(self.members, self.nb_tests)
         for index, member in enumerate(self.members_pool):
-            member_s_points = self.Problem.experience(member)
+            member_s_points = self.Problem_pool[index].experience(member)
             if member_s_points > 0:
                 self.score[index//self.nb_tests] += member_s_points
             else:
