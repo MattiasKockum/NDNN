@@ -164,7 +164,6 @@ class Herd(object):
                 self.score[index//self.nb_tests] += member_s_points
             else:
                 self.score[index//self.nb_tests] += 0
-            print(self.score)
         self.score /= self.nb_tests
         if list(self.score) == list(np.zeros(self.size)):
             self.score = np.ones(self.size)
