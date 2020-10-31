@@ -28,19 +28,6 @@ class Circuit():
         self.road, self.path = self.road_generation()
         self.path_len = len(self.path)
 
-    def __repr__(self):
-        s = ""
-        for x in range(self.size):
-            for y in range(self.size):
-                s += (
-                    2*chr(24)*bool(self.road[x, y] == -1)
-                    + ((str(int(self.road[x, y]))
-                        + " "*bool(self.road[x, y] < 10))
-                       *bool(self.road[x, y] > -1))
-                    + "\n"*bool(y == self.size - 1)
-                )
-        return(s)
-
     def road_generation(self):
         road = -np.ones((self.size, self.size))
         path = []
@@ -93,13 +80,26 @@ class Circuit():
         """
         """
         return(
-            i < self.size
-            or not (
+            i >= self.size
+            and (
                 x == 0
                 or x == self.size - 1
                 or y == 0
                 or y == self.size - 1)
               )
+
+    def __repr__(self):
+        s = ""
+        for x in range(self.size):
+            for y in range(self.size):
+                s += (
+                    2*chr(24)*bool(self.road[x, y] == -1)
+                    + ((str(int(self.road[x, y]))
+                        + " "*bool(self.road[x, y] < 10))
+                       *bool(self.road[x, y] > -1))
+                    + "\n"*bool(y == self.size - 1)
+                )
+        return(s)
 
 
 class Car(Problem):
