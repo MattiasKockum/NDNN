@@ -4,6 +4,7 @@
 Program written by Mattias Kockum
 On the 15/7/2020
 The aim of this program is to create an AI capable of selective memory
+This one is made to parallelize tasks
 """
 
 import numpy as np
@@ -15,8 +16,20 @@ import matplotlib.pyplot as plt
 def sigmoid(x):
 	return(2*((1/(1+2.7**(-x)))-0.5))
 
+def extend(array, n):
+    r = []
+    for i in array:
+        for j in range(n):
+            r.append(copy.deepcopy(i))
+    return(r)
 
-class Problem():
+def mean(array, n):
+    r = []
+    for i in range(0, len(array), n):
+        r.append(sum(array[i:i+n])/n)
+    return(r)
+
+class Problem(object):
     """
     The frame of any "live" problem
     """
@@ -53,7 +66,7 @@ class Problem():
         self.__init__(self.warning)
 
 
-class Herd():
+class Herd(object):
     """
     Herd of networks that evolve by reproducing
     """
@@ -76,34 +89,41 @@ class Herd():
         self.mutation_coefficent = mutation_coefficent
         self.mutation_amplitude = mutation_amplitude
         self.Problem = Problem
+        self.Problem_pool_size = 10
+        self.Problem_pool = extend([self.Problem], self.Problem_pool_size)
         self.members = [
             Network(nb_sensors, nb_actors, nb_add_neurons, **kwargs)
             for i in range(size)
         ]
+        self.members_pool_size = 10
         self.nb_tests = nb_tests
         self.array_scores = []
 
-    def evolve(self, nb_iterations):
+    def evolve(self, nb_generations):
         """
         The idea is to make the AI evolve by aproximating the gradient descent
         """
-        for iteration in range(nb_iterations):
+        for generation in range(nb_generations):
+            # Evaluation of performances
             proba_reproduction = self.performances()
+            # Reproduction of Networks
             new_members = [
                 copy.deepcopy(
                     np.random.choice(
-                    self.members,
-                    p=proba_reproduction
+                        self.members,
+                        p=proba_reproduction
                     )
                 )
-            for i in range(self.size)
+                for i in range(self.size)
             ]
             self.members = new_members
+            # Mutation of the Networks
             for network in self.members:
                 network.mutate(
                     self.mutation_coefficent,
                     self.mutation_amplitude
                 )
+                network.reset()
             self.array_scores.append(sum(self.score)/self.size)
         return(self.array_scores)
 
@@ -112,15 +132,21 @@ class Herd():
         Evaluates performances then normalises them for probability operations
         """
         self.score = np.zeros(self.size)
-        for i, j in enumerate(self.members):
-            points = (
-                sum([self.Problem.experience(j) for k in range(self.nb_tests)])
+        self.members_pool = extend(self.members, self.members_pool_size)
+        for index, member in enumerate(self.members_pool):
+            member_s_points = (
+                sum(
+                    [
+                        self.Problem.experience(member)
+                        for k in range(self.nb_tests)
+                    ]
+                )
                 /self.nb_tests
             )
-            if points > 0:
-                self.score[i] = points
+            if member_s_points > 0:
+                self.score[index//self.members_pool_size] += member_s_points
             else:
-                self.score[i] = 0
+                self.score[index//self.members_pool_size] += 0
         if list(self.score) == list(np.zeros(self.size)):
             self.score = np.ones(self.size)
         score_modif = self.modif_score(self.score)
@@ -152,7 +178,7 @@ class Herd():
         return(reproductive_members[0].nb_neurons)
 
 
-class Network():
+class Network(object):
     """
     """
     def __init__(
@@ -339,7 +365,7 @@ class Network():
                     more_neurons += 1
             pass
 
-class TestBench():
+class TestBench(object):
     """
     A test bench to verify everything works fine
     """

@@ -318,7 +318,7 @@ def main():
         9, # nb_add_neurons
         30, # size
         0.5, # mutation_coefficient
-        0.01, # mutation_amplitude
+        0.005, # mutation_amplitude
         5, # nb_tests
         slices=[5, 4],
         regions=[
