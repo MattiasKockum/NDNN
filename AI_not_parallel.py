@@ -4,7 +4,9 @@
 Program written by Mattias Kockum
 On the 15/7/2020
 The aim of this program is to create an AI capable of selective memory
+
 WARNING : THIS ONE IS NOT SUPPORTED ANYMORE
+please refer to AI.py for changes
 """
 
 import numpy as np
