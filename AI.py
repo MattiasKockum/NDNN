@@ -23,12 +23,6 @@ def extend(array, n):
             r.append(copy.deepcopy(i))
     return(r)
 
-def mean(array, n):
-    r = []
-    for i in range(0, len(array), n):
-        r.append(sum(array[i:i+n])/n)
-    return(r)
-
 class Problem(object):
     """
     The frame of any "live" problem
@@ -89,13 +83,11 @@ class Herd(object):
         self.mutation_coefficent = mutation_coefficent
         self.mutation_amplitude = mutation_amplitude
         self.Problem = Problem
-        self.Problem_pool_size = 10
-        self.Problem_pool = extend([self.Problem], self.Problem_pool_size)
+        self.Problem_pool = extend([self.Problem], self.size)
         self.members = [
             Network(nb_sensors, nb_actors, nb_add_neurons, **kwargs)
             for i in range(size)
         ]
-        self.members_pool_size = 10
         self.nb_tests = nb_tests
         self.array_scores = []
 
@@ -132,7 +124,7 @@ class Herd(object):
         Evaluates performances then normalises them for probability operations
         """
         self.score = np.zeros(self.size)
-        self.members_pool = extend(self.members, self.members_pool_size)
+        self.members_pool = extend(self.members, self.nb_tests)
         for index, member in enumerate(self.members_pool):
             member_s_points = (
                 sum(
@@ -141,12 +133,12 @@ class Herd(object):
                         for k in range(self.nb_tests)
                     ]
                 )
-                /self.nb_tests
             )
             if member_s_points > 0:
-                self.score[index//self.members_pool_size] += member_s_points
+                self.score[index//self.nb_tests] += member_s_points
             else:
-                self.score[index//self.members_pool_size] += 0
+                self.score[index//self.nb_tests] += 0
+        self.score /= self.nb_tests
         if list(self.score) == list(np.zeros(self.size)):
             self.score = np.ones(self.size)
         score_modif = self.modif_score(self.score)

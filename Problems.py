@@ -194,28 +194,34 @@ def gradient(X, Y):
     )
 
 def main():
-    main_test_game2()
+    #main_test_game2()
     main_test_gradient()
 
-def main_test_gradient():
+def main_test_gradient(
+    nb_herds = 1,
+    nb_generations = 900,
+    nb_add_neurons = 0,
+    size = 2,
+    mutation_coefficient = 1,
+    mutation_amplitude = 0.01,
+    nb_tests = 1
+    ):
     P = Gradient_Descent_Test()
-    size = 2
     TB = TestBench(
         P, # Problem
-        1, # nb_herds
-        90, # nb_generations
-        0, # nb_add_neurons
-        size, # size
-        1, # mutation_coefficient
-        0.01, # mutation_amplitude
-        1, # nb_tests
+        nb_herds,
+        nb_generations,
+        nb_add_neurons,
+        size,
+        mutation_coefficient,
+        mutation_amplitude,
+        nb_tests
     )
     TB.test(0)
     P.display(size)
     return(P.results)
 
 def main_test_game2():
-    """
     P = Centre_Game_2(False)
     TB = TestBench(
         P,
@@ -235,7 +241,6 @@ def main_test_game2():
         ]
     )
     TB.test(5)
-    """
 
 
 if __name__ == "__main__":
