@@ -166,7 +166,10 @@ class Car(Problem):
         return(score)
 
     def end_condition(self):
-        return(np.array_equal(self.previous_pos, self.pos))
+        return(
+            self.state_pos(self.pos) == self.path_len
+            or np.array_equal(self.previous_pos, self.pos)
+        )
 
     def state(self):
         return(
@@ -316,10 +319,10 @@ def main():
         1, # nb_herds
         5, # nb_generations
         9, # nb_add_neurons
-        4, # size
+        5, # size
         0.5, # mutation_coefficient
         0.005, # mutation_amplitude
-        3, # nb_tests
+        2, # nb_tests
         slices=[5, 4],
         regions=[
             [False, True, False, False],

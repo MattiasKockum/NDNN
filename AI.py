@@ -20,9 +20,6 @@ import matplotlib.pyplot as plt
 def sigmoid(x):
 	return(2*((1/(1+np.e**(-x)))-0.5))
 
-def gaussian(x, a=1, b=0, c=1):
-    return(a*np.exp(-((x-b)/c)**2/2))
-
 def extend(array, n):
     r = []
     for i in array:

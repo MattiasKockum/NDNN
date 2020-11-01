@@ -122,7 +122,8 @@ class Centre_Game_2(Problem):
 class Gradient_Descent_Test():
     """
     """
-    def __init__(self, results = []):
+    def __init__(self, timer, results = []):
+        self.timer = timer
         self.results = results
         self.nb_sensors = 1
         self.nb_actors = 0
@@ -136,18 +137,22 @@ class Gradient_Descent_Test():
         return(np.array([1]))
 
     def experience(self, Network):
+        # below is a useful test to see if parallelization works
+        #print("echantillon {}".format(np.random.randint(40)) )
         self.bias = Network.bias[0]
         self.weight = Network.weights[0][0]
         self.results.append((self.weight, self.bias))
         score = self.score_real_time()
         self.reset()
+        if len(self.results) == self.timer:
+            self.display()
         return(score)
 
     def score_real_time(self):
         return(gradient(self.weight, self.bias))
 
     def reset(self):
-        self.__init__(self.results)
+        self.__init__(self.timer, self.results)
 
     def display(self, step=1):
         fig = plt.figure()
@@ -182,9 +187,6 @@ class Gradient_Descent_Test():
 
 
 def gradient(X, Y):
-    A = np.array([1, 1.2, 1.4])
-    B = np.array([0, 0.2, -0.2])
-    C = np.array([0.2, 0.1, 0.05])
     return(
         + 1*np.exp(-(((X-0)/0.2)**2+((Y+0)/0.2)**2))
         + 1.2*np.exp(-(((X-0.2)/0.1)**2+((Y+0.2)/0.1)**2))
@@ -195,12 +197,12 @@ def main_test_gradient(
     nb_herds = 1,
     nb_generations = 900,
     nb_add_neurons = 0,
-    size = 2,
+    size = 3,
     mutation_coefficient = 1,
     mutation_amplitude = 0.01,
     nb_tests = 1
     ):
-    P = Gradient_Descent_Test([])
+    P = Gradient_Descent_Test(nb_generations, [])
     TB = TestBench(
         P, # Problem
         nb_herds,
@@ -212,7 +214,6 @@ def main_test_gradient(
         nb_tests
     )
     TB.test(0)
-    P.display(size)
     return(P.results)
 
 def main_test_game2():
