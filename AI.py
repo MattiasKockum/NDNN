@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Program written by Mattias Kockum
 On the 15/7/2020
@@ -10,7 +11,6 @@ The aim of this program is to create an AI
 The training is parallelized
 """
 
-
 import numpy as np
 import copy
 import turtle
@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 def sigmoid(x):
 	return(2*((1/(1+np.e**(-x)))-0.5))
 
-def gaussian(x, a, b, c):
-    return(a*np.exp(-(x-b)**2/2*c**2))
+def gaussian(x, a=1, b=0, c=1):
+    return(a*np.exp(-((x-b)/c)**2/2))
 
 def extend(array, n):
     r = []
@@ -379,12 +379,12 @@ class Network(object):
                 # If the iterator corresponds to a weight, we modify it
                 if i < self.nb_neurons**2:
                     self.weights[i//self.nb_neurons][i%self.nb_neurons] += (
-                        mutation_amplitude*(np.random.rand() - 0.5)
+                        np.random.normal(0, mutation_amplitude)
                     )
                 # Elsif it corresponds to a bias we modify it
                 elif i < self.nb_neurons*(self.nb_neurons + 1):
                     self.bias[i - self.nb_neurons**2] += (
-                        mutation_amplitude*(np.random.rand() - 0.5)
+                        np.random.normal(0, mutation_amplitude)
                     )
                 # Else we add a neuron (NOT IMPLEMENTED YET)
                 else:
