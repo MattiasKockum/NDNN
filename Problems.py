@@ -122,10 +122,10 @@ class Centre_Game_2(Problem):
 class Gradient_Descent_Test():
     """
     """
-    def __init__(self, timer = 1, results = [], do_display = False):
+    def __init__(self, timer = 1, results = [], display_mode = None):
         self.timer = timer
         self.results = results
-        self.do_display = do_display
+        self.display_mode = display_mode
         self.nb_sensors = 1
         self.nb_actors = 0
         self.bias = 0
@@ -151,17 +151,21 @@ class Gradient_Descent_Test():
         self.results.append((self.weight, self.bias))
         score = self.score_real_time()
         self.reset()
-        if self.do_display and len(self.results) >= self.timer:
-            self.display()
+        if (
+            self.display_mode != None
+            and self.display_mode in [1, "plot"]
+            and len(self.results) >= self.timer
+        ):
+            self.display_plot()
         return(score)
 
     def score_real_time(self):
         return(gradient(self.weight, self.bias))
 
     def reset(self):
-        self.__init__(self.timer, self.results, self.do_display)
+        self.__init__(self.timer, self.results, self.display_mode)
 
-    def display(self, step=1):
+    def display_plot(self, step=1):
         fig = plt.figure()
         ax = fig.gca(projection='3d')
 
@@ -208,7 +212,7 @@ def main_test_gradient(
     mutation_coefficient = 0.1,
     mutation_amplitude = 0.001,
     nb_tests = 1,
-    do_display = False
+    display_mode = "console"
     ):
     # Replace nb_generations by 1 to see evolution frame by frame
     P = Gradient_Descent_Test(nb_generations, [], False)
@@ -221,7 +225,7 @@ def main_test_gradient(
         mutation_coefficient,
         mutation_amplitude,
         nb_tests,
-        do_display
+        display_mode
     )
     TB.test(0)
     return(P.results)

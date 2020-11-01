@@ -12,7 +12,6 @@ The training is parallelized
 """
 
 import numpy as np
-import numba as nb
 import copy
 import turtle
 import matplotlib.pyplot as plt
@@ -144,7 +143,6 @@ class Herd(object):
             self.array_scores.append(sum(self.score)/self.size)
         return(self.array_scores)
 
-    @nb.jit(parallel=True)
     def reproduce(self, proba_reproduction):
         """
         The copy of the successful networks before mutation
@@ -160,7 +158,6 @@ class Herd(object):
             for i in range(self.size)
         ])
 
-    @nb.jit(parallel=True)
     def mutate(self):
         """
         Mutates all the networks
@@ -173,7 +170,6 @@ class Herd(object):
             )
             network.reset()
 
-    @nb.jit(parallel=True)
     def performances(self):
         """
         Evaluates performances then normalises them for probability operations
@@ -250,8 +246,8 @@ class Network(object):
             self.bias = kwargs["bias"]
         else :
             raise(ValueError("Input matrices do not have the right format\
-                             or both weights and bias or both slices and \
-                             regions must be entered"))
+                    or both weights and bias or both slices and \
+                    regions must be entered"))
 
     def random_set_up(self):
         self.weights = (
@@ -421,7 +417,7 @@ class TestBench(object):
         mutation_coefficent = 0.0001,
         mutation_amplitude = 0.01,
         nb_tests = 2,
-        do_display = False,
+        display_mode = None,
         **kwargs
     ):
         self.kwargs = kwargs
@@ -440,7 +436,7 @@ class TestBench(object):
         self.mutation_coefficent = mutation_coefficent
         self.mutation_amplitude = mutation_amplitude
         self.nb_tests = nb_tests
-        self.do_display = do_display
+        self.display_mode = display_mode
         self.values_simple = self.nb_herds*[1]
         self.values_nb_add_neurons = [0, 1, 2, 3, 4, 5, 6]
         self.values_sizes = [5, 10, 50, 100, 500, 1000]
@@ -448,23 +444,6 @@ class TestBench(object):
         self.values_mutation_amplitude = [0.01, 0.005, 0.001]
         self.values_nb_tests = [2, 4, 8, 16, 32, 64, 128, 256, 512]
         self.archives = []
-
-    def demo(self):
-        self.problem.displayed = True
-        self.problem.reset()
-
-    def display(self, archive = False):
-        if archive:
-            display_series = [i[1][0] for i in self.archives]
-        else:
-            display_series = self.series
-        for indice, serie in enumerate(display_series):
-            plt.plot(
-                [k for k in range(len(serie))],
-                serie,
-                self.colors[indice%len(self.colors)]+"-*"
-            )
-        plt.show()
 
     def test(self, mode = 0, nb_generations = None, values = None):
         if nb_generations == None:
@@ -532,7 +511,36 @@ class TestBench(object):
             H = Herd(*array_inputs[i], **self.kwargs)
             self.series.append(H.evolve(nb_generations))
             self.archives.append([H.members[0], self.series])
-        if self.do_display:
-            self.display()
+        if self.display_mode != None:
+            if self.display_mode in [0, "console"]:
+                self.display_console()
+            if self.display_mode in [1, "plot"]:
+                self.display_plot()
         self.series = []
+
+    def display_console(self, archive = False):
+        if archive:
+            display_series = [i[1][0] for i in self.archives]
+        else:
+            display_series = self.series
+        for indice, serie in enumerate(display_series):
+            color = self.colors[indice%len(self.colors)]
+            print("-- serie n°: {} -- color : {} --\n".format(indice, color))
+            for i in serie:
+                print("      {}".format(i))
+
+    def display_plot(self, archive = False):
+        if archive:
+            display_series = [i[1][0] for i in self.archives]
+        else:
+            display_series = self.series
+        for indice, serie in enumerate(display_series):
+            color = self.colors[indice%len(self.colors)]
+            plt.plot(
+                [k for k in range(len(serie))],
+                serie,
+                color+"-*"
+            )
+        plt.show()
+
 
