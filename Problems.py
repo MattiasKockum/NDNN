@@ -210,7 +210,7 @@ def main_test_gradient(
     nb_tests = 1
     ):
     # Replace nb_generations by 1 to see evolution frame by frame
-    P = Gradient_Descent_Test(nb_generations, [], True)
+    P = Gradient_Descent_Test(nb_generations, [], False)
     TB = TestBench(
         P, # Problem
         nb_herds,

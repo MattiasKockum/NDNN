@@ -12,6 +12,7 @@ The training is parallelized
 """
 
 import numpy as np
+import numba as nb
 import copy
 import turtle
 import matplotlib.pyplot as plt
@@ -136,29 +137,44 @@ class Herd(object):
             # Evaluation of performances
             proba_reproduction = self.performances()
             # Reproduction of Networks
-            new_members = [
-                copy.deepcopy(
-                    np.random.choice(
-                        self.members,
-                        p=proba_reproduction
-                    )
-                )
-                for i in range(self.size)
-            ]
-            self.members = new_members
-            # Mutation of the Networks
-            for network in self.members:
-                network.mutate(
-                    self.mutation_coefficent,
-                    self.mutation_amplitude
-                )
-                network.reset()
+            self.members = self.reproduce(proba_reproduction)
+            # Mutates the networks
+            self.mutate()
+            # Saves the scores
             self.array_scores.append(sum(self.score)/self.size)
         return(self.array_scores)
+
+    def reproduce(self, proba_reproduction):
+        """
+        The copy of the successful networks before mutation
+        Hopfully can be parallelized
+        """
+        return([
+            copy.deepcopy(
+                np.random.choice(
+                    self.members,
+                    p=proba_reproduction
+                )
+            )
+            for i in range(self.size)
+        ])
+
+    def mutate(self):
+        """
+        Mutates all the networks
+        Can be parallelized
+        """
+        for network in self.members:
+            network.mutate(
+                self.mutation_coefficent,
+                self.mutation_amplitude
+            )
+            network.reset()
 
     def performances(self):
         """
         Evaluates performances then normalises them for probability operations
+        Can be parallelized
         """
         self.score = np.zeros(self.size)
         self.members_pool = extend(self.members, self.nb_tests)
