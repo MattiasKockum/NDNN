@@ -207,7 +207,8 @@ def main_test_gradient(
     size = 200,
     mutation_coefficient = 0.1,
     mutation_amplitude = 0.001,
-    nb_tests = 1
+    nb_tests = 1,
+    do_display = False
     ):
     # Replace nb_generations by 1 to see evolution frame by frame
     P = Gradient_Descent_Test(nb_generations, [], False)
@@ -219,7 +220,8 @@ def main_test_gradient(
         size,
         mutation_coefficient,
         mutation_amplitude,
-        nb_tests
+        nb_tests,
+        do_display
     )
     TB.test(0)
     return(P.results)

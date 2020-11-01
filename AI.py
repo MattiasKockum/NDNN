@@ -144,6 +144,7 @@ class Herd(object):
             self.array_scores.append(sum(self.score)/self.size)
         return(self.array_scores)
 
+    @nb.jit(parallel=True)
     def reproduce(self, proba_reproduction):
         """
         The copy of the successful networks before mutation
@@ -159,6 +160,7 @@ class Herd(object):
             for i in range(self.size)
         ])
 
+    @nb.jit(parallel=True)
     def mutate(self):
         """
         Mutates all the networks
@@ -171,6 +173,7 @@ class Herd(object):
             )
             network.reset()
 
+    @nb.jit(parallel=True)
     def performances(self):
         """
         Evaluates performances then normalises them for probability operations
@@ -418,6 +421,7 @@ class TestBench(object):
         mutation_coefficent = 0.0001,
         mutation_amplitude = 0.01,
         nb_tests = 2,
+        do_display = False,
         **kwargs
     ):
         self.kwargs = kwargs
@@ -436,6 +440,7 @@ class TestBench(object):
         self.mutation_coefficent = mutation_coefficent
         self.mutation_amplitude = mutation_amplitude
         self.nb_tests = nb_tests
+        self.do_display = do_display
         self.values_simple = self.nb_herds*[1]
         self.values_nb_add_neurons = [0, 1, 2, 3, 4, 5, 6]
         self.values_sizes = [5, 10, 50, 100, 500, 1000]
@@ -527,6 +532,7 @@ class TestBench(object):
             H = Herd(*array_inputs[i], **self.kwargs)
             self.series.append(H.evolve(nb_generations))
             self.archives.append([H.members[0], self.series])
-        self.display()
+        if self.do_display:
+            self.display()
         self.series = []
 
