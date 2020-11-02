@@ -21,22 +21,41 @@ import matplotlib.pyplot as plt
 def sigmoid(x):
 	return(2*((1/(1+np.e**(-x)))-0.5))
 
-def extend(array, n):
+def extend(array, n=1):
     r = []
     for i in array:
         for j in range(n):
             r.append(copy.deepcopy(i))
     return(r)
 
-def prob_copy(X):
+def mean(array, n=1):
+    r = []
+    array += [0]*(-len(array)%n)
+    for i in range(0, len(array), n):
+        r.append(sum(array[i:i+n])/n)
+    return(r)
+
+def prob_reproduction(X):
     """
     A weird looking function for parallelization
     X[0] is a group of objects
     X[1] is their respective probability of beig copied
-    returns the deepcopy of the chosen one
+    X[2] = mutation_coefficent
+    X[3] = mutation_amplitude
+    returns the mutation of the chosen one
     """
     np.random.seed() # without it every thread has the same RNG
-    return(copy.deepcopy(np.random.choice(X[0], p=X[1])))
+    return(np.random.choice(X[0], p=X[1]).mutate(X[2], X[3]))
+
+def evaluate(X):
+    """
+    Another weird looking function
+    X[0] is a problem
+    X[1] is a network
+    returns the score of the network
+    """
+    return(X[0].experience(X[1]))
+
 
 class Problem(object):
     """
@@ -58,7 +77,8 @@ class Problem(object):
             self.action(*Network.process(self.state(), self.period))
         score = self.score_real_time()
         self.reset()
-        return(score)
+        # score should always be > 0
+        return(score*(score>0) + 0)
 
     def end_condition(self):
         """
@@ -150,52 +170,43 @@ class Herd(object):
         for generation in range(nb_generations):
             # Evaluation of performances
             proba_reproduction = self.performances()
-            # Reproduction of Networks
-            self.members = self.reproduce(proba_reproduction)
-            # Mutates the networks
-            self.mutate()
+            # Reproduction (with mutation) of Networks
+            self.reproduce(proba_reproduction)
             # Saves the scores
             self.array_scores.append(sum(self.score)/self.size)
         return(self.array_scores)
 
     def reproduce(self, proba_reproduction):
         """
-        The copy of the successful networks before mutation
+        The copy of the successful networks with mutation
         parallelized
         """
-        return(
-            mp.Pool().map(
-                prob_copy,
-                [(self.members, proba_reproduction)]*self.size
+        self.members = (
+            mp.Pool(processes=4).map(
+                prob_reproduction,
+                [(
+                    self.members,
+                    proba_reproduction,
+                    self.mutation_coefficent,
+                    self.mutation_amplitude
+                )]*self.size
             )
         )
-
-    def mutate(self):
-        """
-        Mutates all the networks
-        Can be parallelized
-        """
-        for network in self.members:
-            network.mutate(
-                self.mutation_coefficent,
-                self.mutation_amplitude
-            )
-            network.reset()
 
     def performances(self):
         """
         Evaluates performances then normalises them for probability operations
         Can be parallelized
         """
-        self.score = np.zeros(self.size)
         self.members_pool = extend(self.members, self.nb_tests)
-        for index, member in enumerate(self.members_pool):
-            member_s_points = self.Problem_pool[index].experience(member)
-            if member_s_points > 0:
-                self.score[index//self.nb_tests] += member_s_points
-            else:
-                self.score[index//self.nb_tests] += 0
-        self.score /= self.nb_tests
+        # parallelize the evaluation of the networks
+        member_s_points = mp.Pool(processes=4).map(
+            evaluate,
+            [(P, M) for P,M in zip(self.Problem_pool, self.members_pool)]
+        )
+        self.score = mean(member_s_points, self.nb_tests)
+        # if evey Network has a score of zero they reproduce with equal
+        # proability
         if list(self.score) == list(np.zeros(self.size)):
             self.score = np.ones(self.size)
         score_modif = self.modif_score(self.score)
@@ -288,8 +299,8 @@ class Network(object):
                             self.slices[indice_j]
                         )
                         - 0.5
-                        )
                     )
+                )
         self.bias = np.random.rand(self.nb_neurons) - 0.5
 
     def __repr__(self):
@@ -392,30 +403,28 @@ class Network(object):
 
     def mutate(self, mutation_coefficent, mutation_amplitude):
         """
-        We mutate the Network
+        Return the mutated Network
         """
         np.random.seed() # For multiprocressing
-        more_neurons = 0
-        for i in range(self.nb_neurons*(self.nb_neurons + 1) + 1):
+        mn = copy.deepcopy(self) # mutated network
+        for i in range(mn.nb_neurons*(mn.nb_neurons + 1)):
             # If there is a mutation
             if np.random.choice(
                 [True, False],
                 p = [mutation_coefficent, 1 - mutation_coefficent]
             ):
                 # If the iterator corresponds to a weight, we modify it
-                if i < self.nb_neurons**2:
-                    self.weights[i//self.nb_neurons][i%self.nb_neurons] += (
+                if i < mn.nb_neurons**2:
+                    mn.weights[i//mn.nb_neurons][i%mn.nb_neurons] += (
                         np.random.normal(0, mutation_amplitude)
                     )
                 # Elsif it corresponds to a bias we modify it
-                elif i < self.nb_neurons*(self.nb_neurons + 1):
-                    self.bias[i - self.nb_neurons**2] += (
+                elif i < mn.nb_neurons*(mn.nb_neurons + 1):
+                    mn.bias[i - mn.nb_neurons**2] += (
                         np.random.normal(0, mutation_amplitude)
                     )
-                # Else we add a neuron (NOT IMPLEMENTED YET)
-                else:
-                    more_neurons += 1
-            pass
+        return(mn)
+
 
 class TestBench(object):
     """

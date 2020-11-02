@@ -56,7 +56,7 @@ class Centre_Game_1(Problem):
             self.action(*Network.process(self.state(), self.period))
         score = self.score_real_time()
         self.reset()
-        return(score)
+        return(score*(score>0) + 0)
 
     def score_real_time(self):
         return(1/(1 + (self.x**2 + self.y**2)))
@@ -110,7 +110,7 @@ class Centre_Game_2(Problem):
             self.action(*Network.process(self.state(), self.period))
         score = self.score_real_time()
         self.reset()
-        return(score)
+        return(score*(score>0) + 0)
 
     def score_real_time(self):
         return(1/(1 + (self.x**2 + self.y**2)))
@@ -157,7 +157,7 @@ class Gradient_Descent_Test():
             and len(self.results) >= self.timer
         ):
             self.display_plot()
-        return(score)
+        return(score*(score>0) + 0)
 
     def score_real_time(self):
         return(gradient(self.weight, self.bias))
@@ -211,8 +211,8 @@ def main_test_gradient(
     size = 200,
     mutation_coefficient = 0.1,
     mutation_amplitude = 0.001,
-    nb_tests = 1,
-    display_mode = "console"
+    nb_tests = 10,
+    display_mode = None
     ):
     # Replace nb_generations by 1 to see evolution frame by frame
     P = Gradient_Descent_Test(nb_generations, [], False)
