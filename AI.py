@@ -12,6 +12,7 @@ The training is parallelized
 """
 
 import numpy as np
+import multiprocessing as mp
 import copy
 import turtle
 import matplotlib.pyplot as plt
@@ -26,6 +27,16 @@ def extend(array, n):
         for j in range(n):
             r.append(copy.deepcopy(i))
     return(r)
+
+def prob_copy(X):
+    """
+    A weird looking function for parallelization
+    X[0] is a group of objects
+    X[1] is their respective probability of beig copied
+    returns the deepcopy of the chosen one
+    """
+    np.random.seed() # without it every thread has the same RNG
+    return(copy.deepcopy(np.random.choice(X[0], p=X[1])))
 
 class Problem(object):
     """
@@ -100,13 +111,14 @@ class Problem(object):
 class Herd(object):
     """
     Herd of networks that evolve by reproducing
+    I should get the self.problem off
     """
     def __init__(
         self,
-        nb_sensors,
-        nb_actors,
-        nb_add_neurons,
-        Problem,
+        nb_sensors = 1,
+        nb_actors = 1,
+        nb_add_neurons = 0,
+        problem = None,
         size = 5,
         mutation_coefficent = 0.1,
         mutation_amplitude = 0.001,
@@ -116,7 +128,10 @@ class Herd(object):
         self.nb_sensors = nb_sensors
         self.nb_actors = nb_actors
         self.nb_add_neurons = nb_add_neurons
-        self.Problem = Problem
+        if problem == None:
+            self.Problem = Problem()
+        else:
+            self.Problem = problem
         self.size = size
         self.mutation_coefficent = mutation_coefficent
         self.mutation_amplitude = mutation_amplitude
@@ -128,7 +143,7 @@ class Herd(object):
         ]
         self.array_scores = []
 
-    def evolve(self, nb_generations):
+    def evolve(self, nb_generations=1):
         """
         The idea is to make the AI evolve by aproximating the gradient descent
         """
@@ -146,17 +161,14 @@ class Herd(object):
     def reproduce(self, proba_reproduction):
         """
         The copy of the successful networks before mutation
-        Hopfully can be parallelized
+        parallelized
         """
-        return([
-            copy.deepcopy(
-                np.random.choice(
-                    self.members,
-                    p=proba_reproduction
-                )
+        return(
+            mp.Pool().map(
+                prob_copy,
+                [(self.members, proba_reproduction)]*self.size
             )
-            for i in range(self.size)
-        ])
+        )
 
     def mutate(self):
         """
@@ -220,9 +232,9 @@ class Network(object):
     """
     def __init__(
         self,
-        nb_sensors,
-        nb_actors,
-        nb_add_neurons,
+        nb_sensors = 1,
+        nb_actors = 0,
+        nb_add_neurons = 0,
         **kwargs # "weight", "bias", "slices", "regions"
     ):
         self.nb_sensors = nb_sensors
@@ -326,6 +338,7 @@ class Network(object):
     def iteration(self):
         """
         We iterate once and update network state
+        Hopefully I can parallelize the matrix multiplication
         """
         self.values = sigmoid(
             np.matmul(self.weights, self.values)
@@ -381,6 +394,7 @@ class Network(object):
         """
         We mutate the Network
         """
+        np.random.seed() # For multiprocressing
         more_neurons = 0
         for i in range(self.nb_neurons*(self.nb_neurons + 1) + 1):
             # If there is a mutation
