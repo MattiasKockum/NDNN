@@ -32,46 +32,34 @@ class Circuit():
         road = -np.ones((self.size, self.size))
         path = []
         i = 0
-        pb = 0 # for not getting stuck
         x = 0
         y = 0
         while not self.end_condition(i, x, y):
             direction = np.random.randint(5)
             if direction == 0:
                 if y + 1 < self.size:
-                    if road[x, y + 1] == -1:
-                        road[x, y] = i
-                        path.append((x, y))
-                        i += 1
-                        y += 1
-                        pb = 0
+                    road[x, y] = i
+                    path.append((x, y))
+                    i += 1
+                    y += 1
             elif direction == 1:
                 if x - 1 > 0:
-                    if road[x - 1, y] == -1:
-                        road[x, y] = i
-                        path.append((x, y))
-                        i += 1
-                        x -= 1
-                        pb = 0
+                    road[x, y] = i
+                    path.append((x, y))
+                    i += 1
+                    x -= 1
             elif direction == 2:
                 if y - 1 > 0:
-                    if road[x, y - 1] == -1:
-                        road[x, y] = i
-                        path.append((x, y))
-                        i += 1
-                        y -= 1
-                        pb = 0
+                    road[x, y] = i
+                    path.append((x, y))
+                    i += 1
+                    y -= 1
             elif direction == 3:
                 if x + 1 < self.size:
-                    if road[x + 1, y] == -1:
-                        road[x, y] = i
-                        path.append((x, y))
-                        i += 1
-                        x += 1
-                        pb = 0
-            if pb == 5:
-                return(self.road_generation())
-            pb += 1
+                    road[x, y] = i
+                    path.append((x, y))
+                    i += 1
+                    x += 1
         self.posfin = np.array([x, y])
         road[x, y] = i
         return(road, path)
@@ -313,7 +301,7 @@ class Car(Problem):
 
 
 def main():
-    P = Car(True, 4)
+    P = Car(False, 100)
     TB = TestBench(
         P,
         1, # nb_herds

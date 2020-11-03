@@ -141,11 +141,11 @@ class Gradient_Descent_Test():
         self.bias = Network.bias[0]
         # below is a useful test to see if parallelization works
         #print(
-        #    "Problem : {}\n     Network : {}\n     Network hash : {}".format(
-        #        self.__hash__(),
-        #        self.weight + self.bias,
-        #        Network.__hash__()
-        #    )
+            #"Problem : {}\n     Network : {}\n     Network hash : {}".format(
+                #self.__hash__(),
+                #self.weight + self.bias,
+                #Network.__hash__()
+            #)
         #)
         self.weight = Network.weights[0][0]
         self.results.append((self.weight, self.bias))
@@ -206,12 +206,12 @@ def gradient(X, Y):
 
 def main_test_gradient(
     nb_herds = 1,
-    nb_generations = 100,
+    nb_generations = 10,
     nb_add_neurons = 0,
-    size = 200,
+    size = 100,
     mutation_coefficient = 0.1,
     mutation_amplitude = 0.001,
-    nb_tests = 10,
+    nb_tests = 1, # put higher to speedtest your CPU/GPU
     display_mode = None
     ):
     # Replace nb_generations by 1 to see evolution frame by frame

@@ -44,7 +44,7 @@ def prob_reproduction(X):
     X[3] = mutation_amplitude
     returns the mutation of the chosen one
     """
-    np.random.seed() # without it every thread has the same RNG
+    #np.random.seed() # without it every thread has the same RNG
     return(np.random.choice(X[0], p=X[1]).mutate(X[2], X[3]))
 
 def evaluate(X):
@@ -182,7 +182,7 @@ class Herd(object):
         parallelized
         """
         self.members = (
-            mp.Pool(processes=4).map(
+            mp.Pool().map(
                 prob_reproduction,
                 [(
                     self.members,
@@ -200,7 +200,8 @@ class Herd(object):
         """
         self.members_pool = extend(self.members, self.nb_tests)
         # parallelize the evaluation of the networks
-        member_s_points = mp.Pool(processes=4).map(
+        # Still don't know why but paralleliztion here slows the hole thing
+        member_s_points = mp.Pool().map(
             evaluate,
             [(P, M) for P,M in zip(self.Problem_pool, self.members_pool)]
         )
