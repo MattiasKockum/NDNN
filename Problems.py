@@ -137,6 +137,7 @@ class Gradient_Descent_Test():
 
     def experience(self, Network):
         self.bias = Network.bias[0]
+        self.weight = Network.weights[0][0]
         # below is a useful test to see if parallelization works
         #print(
             #"Problem : {}\n     Network : {}\n     Network hash : {}".format(
@@ -145,16 +146,15 @@ class Gradient_Descent_Test():
                 #Network.__hash__()
             #)
         #)
-        self.weight = Network.weights[0][0]
         self.results.append((self.weight, self.bias))
         score = self.score_real_time()
-        self.reset()
         if (
             self.display_mode != None
             and self.display_mode in [1, "plot"]
             and len(self.results) >= self.timer
         ):
             self.display_plot()
+        self.reset()
         return(score*(score>0) + 0)
 
     def score_real_time(self):
@@ -204,21 +204,23 @@ def gradient(X, Y):
 
 def main_test_gradient(
     nb_herds = 1,
-    nb_generations = 10,
+    nb_generations = 20,
     nb_add_neurons = 0,
-    size = 100,
+    period = 1,
+    size = 100, # The higher the better the exploration is
     mutation_coefficient = 0.1,
-    mutation_amplitude = 0.001,
+    mutation_amplitude = 0.0001,
     nb_tests = 1, # put higher to speedtest your CPU/GPU
-    display_mode = None
+    display_mode = 1
     ):
     # Replace nb_generations by 1 to see evolution frame by frame
-    P = Gradient_Descent_Test(nb_generations, [], False)
+    P = Gradient_Descent_Test(nb_generations, [], "plot")
     TB = TestBench(
         P, # Problem
         nb_herds,
         nb_generations,
         nb_add_neurons,
+        period,
         size,
         mutation_coefficient,
         mutation_amplitude,
@@ -226,7 +228,6 @@ def main_test_gradient(
         display_mode
     )
     TB.test(0)
-    return(P.results)
 
 def main_test_game2():
     P = Centre_Game_2(False)
@@ -235,6 +236,7 @@ def main_test_game2():
         nb_herds = 1,
         nb_generations = 5,
         nb_add_neurons = 9,
+        period = 1,
         size = 5,
         mutation_coefficent = 0.1,
         mutation_amplitude = 0.001,

@@ -211,6 +211,7 @@ class Problem(object):
         """
         Resets the problem
         """
+        print("Maybe some HUGE PROBLEM is coming at you bro")
         self.__init__()
 
 
@@ -289,15 +290,19 @@ class Herd(object):
         """
         self.members_pool = extend(self.members, self.nb_tests)
         # parallelize the evaluation of the networks
-        # Still don't know why but paralleliztion here slows the hole thing
         member_s_points = mp.Pool().map(
             evaluate,
             [(P, M) for P,M in zip(self.Problem_pool, self.members_pool)]
         )
+        # Put this code if you want to observe evolution, especially in the
+        # Gradient Descent Problem because somehow the use of the mp.Pool().map
+        # function seems to not make it work
+        #self.Problem.experience(self.members_pool[0])
+        #self.members_pool[0].reset()
         self.score = mean(member_s_points, self.nb_tests)
-        # if evey Network has a score of zero they reproduce with equal
-        # proability
         if list(self.score) == list(np.zeros(self.size)):
+            # if evey Network has a score of zero they reproduce with equal
+            # proability
             self.score = np.ones(self.size)
         score_modif = self.modif_score(self.score)
         return(score_modif)
@@ -395,7 +400,7 @@ class Network(object):
                 )
         self.bias = np.random.rand(self.nb_neurons) - 0.5
 
-    def __repr__(self):
+    def display_console(self):
         return("neurons : {}\n".format(self.nb_neurons)
                + "sensors : {}\n".format(self.nb_sensors)
                + "actors : {}\n".format(self.nb_actors)
@@ -621,7 +626,7 @@ class TestBench(object):
             "(1) nb_captors\n",
             "(2) nb_actors\n",
             "(3) nb_add_neurons\n",
-            "(4) period\n"
+            "(4) period\n",
             "(5) Problem\n",
             "(6) herd's size\n",
             "(7) mutation_coefficent\n",
