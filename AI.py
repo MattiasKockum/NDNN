@@ -7,7 +7,6 @@ The aim of this program is to create an AI
     capable of selective memory
     capable of solving real time problems fast
     capable of simulating a Turing Machine
-
 The training is parallelized
 """
 
@@ -218,7 +217,6 @@ class Problem(object):
 class Herd(object):
     """
     Herd of networks that evolve by reproducing
-    I should get the self.problem off
     """
     def __init__(
         self,
@@ -226,7 +224,6 @@ class Herd(object):
         nb_actors = 1,
         nb_add_neurons = 0,
         period = 1,
-        problem = None,
         size = 5,
         mutation_coefficent = 0.1,
         mutation_amplitude = 0.001,
@@ -237,26 +234,26 @@ class Herd(object):
         self.nb_actors = nb_actors
         self.nb_add_neurons = nb_add_neurons
         self.period = period
-        if problem == None:
-            # The empty problem, just here for quick tests
-            self.Problem = Problem()
-        else:
-            self.Problem = problem
         self.size = size
         self.mutation_coefficent = mutation_coefficent
         self.mutation_amplitude = mutation_amplitude
         self.nb_tests = nb_tests
-        self.Problem_pool = extend([self.Problem], self.size*self.nb_tests)
         self.members = [
             Network(nb_sensors, nb_actors, nb_add_neurons, period, **kwargs)
             for i in range(size)
         ]
         self.array_scores = []
 
-    def evolve(self, nb_generations=1):
+    def evolve(self, problem, nb_generations=1):
         """
         The idea is to make the AI evolve by aproximating the gradient descent
         """
+        if problem == None:
+            # The empty problem, just here for quick tests
+            self.Problem = Problem()
+        else:
+            self.Problem = problem
+        self.Problem_pool = extend([self.Problem], self.size*self.nb_tests)
         for generation in range(nb_generations):
             # Evaluation of performances
             proba_reproduction = self.performances()
@@ -576,7 +573,6 @@ class TestBench(object):
             self.nb_actors,
             self.nb_add_neurons,
             self.period,
-            self.problem,
             self.size,
             self.mutation_coefficent,
             self.mutation_amplitude,
@@ -585,41 +581,65 @@ class TestBench(object):
         if mode in [0, "simple"]:
             if values == None:
                 values = self.values_simple
-            array_inputs = np.array([base for i in range(len(values))])
+            array_inputs = np.array(
+                [base for i in range(len(values))],
+                dtype = object
+            )
         if mode in [1, "nb_neurons"]:
             if values == None:
                 values = self.values_nb_add_neurons
-            array_inputs = np.array([base for i in range(len(values))])
+            array_inputs = np.array(
+                [base for i in range(len(values))],
+                dtype = object
+            )
             array_inputs[:,2] = values
         if mode in [2, "period"]:
             if values == None:
                 values = self.period
-            array_inputs = np.array([base for i in range(len(values))])
+            array_inputs = np.array(
+                [base for i in range(len(values))],
+                dtype = object
+            )
             array_inputs[:,3] = values
         if mode in [3, "size"]:
             if values == None:
                 values = self.values_sizes
-            array_inputs = np.array([base for i in range(len(values))])
+            array_inputs = np.array(
+                [base for i in range(len(values))],
+                dtype = object
+            )
             array_inputs[:,5] = values
         if mode in [4, "coefficient_mutation"]:
             if values == None:
                 values = self.values_mutation_coefficients
-            array_inputs = np.array([base for i in range(len(values))])
+            array_inputs = np.array(
+                [base for i in range(len(values))],
+                dtype = object
+            )
             array_inputs[:,6] = values
         if mode in [5, "coefficient_amplitude"]:
             if values == None:
                 values = self.values_mutation_amplitude
-            array_inputs = np.array([base for i in range(len(values))])
+            array_inputs = np.array(
+                [base for i in range(len(values))],
+                dtype = object
+            )
             array_inputs[:,7] = values
         if mode in [6, "nb_tests"]:
             if values == None:
                 values = self.values_nb_tests
-            array_inputs = np.array([base for i in range(len(values))])
+            array_inputs = np.array(
+                [base for i in range(len(values))],
+                dtype = object
+            )
             array_inputs[:,8] = values
         if mode in [7, "multiple"]:
             if values == None:
                 raise(ValueError("An array must be in input"))
-            array_inputs = np.array([base for i in range(len(values))])
+            array_inputs = np.array(
+                [base for i in range(len(values))],
+                dtype = object
+            )
             array_inputs = values
         print(
             "\n",
@@ -627,19 +647,18 @@ class TestBench(object):
             "(2) nb_actors\n",
             "(3) nb_add_neurons\n",
             "(4) period\n",
-            "(5) Problem\n",
-            "(6) herd's size\n",
-            "(7) mutation_coefficent\n",
-            "(8) mutation_amplitude\n",
-            "(9) nb_tests\n",
-            "(10) colors\n",
+            "(5) herd's size\n",
+            "(6) mutation_coefficent\n",
+            "(7) mutation_amplitude\n",
+            "(8) nb_tests\n",
+            "(9) colors\n",
             "\n",
-            "(1)(2)(3)(4)(5)(6)(7)(8)(9)(10)"
+            "(1)(2)(3)(4)(5)(6)(7)(8)(9)"
         )
         for i in range(len(values)):
             print(*array_inputs[i], self.colors[i%len(self.colors)])
             H = Herd(*array_inputs[i], **self.kwargs)
-            self.series.append(H.evolve(nb_generations))
+            self.series.append(H.evolve(self.problem, nb_generations))
             self.archives.append([H.members[0], self.series])
         if self.display_mode != None:
             if self.display_mode in [0, "console"]:
@@ -672,5 +691,3 @@ class TestBench(object):
                 color+"-*"
             )
         plt.show()
-
-
