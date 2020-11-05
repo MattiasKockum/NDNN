@@ -57,6 +57,93 @@ def evaluate(X):
     return(X[0].experience(X[1]))
 
 
+class Problem_Gan(object):
+    """
+    I'd like to make a something like a GAN which would simulate simultanious
+    evolution
+    The idea is that this kind of problem would also be able to generalise the
+    simple one
+    """
+    def __init__(self,
+        nb_sensors_generator,
+        nb_actors_generator,
+        nb_sensors_discriminator,
+        nb_actors_discriminator,
+        discriminator
+        ):
+        self.nb_sensors_generator= nb_sensors_discriminator
+        self.nb_actors_generator= nb_actors_generator
+        self.nb_sensors_discriminator = nb_sensors_discriminator
+        self.nb_actors_discriminator = nb_actors_discriminator
+        self.discriminator = discriminator
+
+    def experience(self, Generator, Discriminator):
+        """
+        Computes the actions of some networks on the problem
+        This is the main function of a problem
+        """
+        print("Warning  : experience was not fully configured")
+        while not self.end_condition():
+            Discriminator.process(Generator.process(self.noise()))
+        score = self.score_real_time()
+        self.reset()
+        # score should always be > 0
+        return(score*(score>0) + 0)
+
+    def end_condition(self):
+        """
+        True if the Problem is finished for whatever reason
+        False if it goes on
+        """
+        print("Warning  : end_condition was not fully configured")
+        return(True)
+
+    def state(self):
+        """
+        Returns the state of the problem
+        """
+        print("Warning  : state was not fully configured")
+        return(np.array([1]))
+
+    def noise(self):
+        """
+        Return some appropriate noise
+        """
+        return(np.random.random())
+
+    # Other state related functions should be there
+
+    def score_real_time(self):
+        """
+        Returns the score of the problem at the moment
+        """
+        print("Warning score_real_time was not fully configured")
+        return(0)
+
+    def action(self, Generator_data):
+        """
+        Computes the consequences of the input_data on the problem
+        """
+        print("Warning  : action was not fully configured")
+        pass
+
+    # Other action related functions should be put here
+
+    def display(self):
+        """
+        Shows how things are doing
+        """
+        print("Warning : experience was not fully configured")
+
+    # Other display functions should be put here
+
+    def reset(self):
+        """
+        Resets the problem
+        """
+        self.__init__()
+
+
 class Problem(object):
     """
     The frame of any "live" problem
@@ -64,7 +151,6 @@ class Problem(object):
     def __init__(self):
         self.nb_sensors = 1
         self.nb_actors = 1
-        self.period = 1
         print("Warning  : __init__ was not fully configured") 
 
     def experience(self, Network):
@@ -74,7 +160,7 @@ class Problem(object):
         """
         print("Warning  : experience was not fully configured")
         while not self.end_condition():
-            self.action(*Network.process(self.state(), self.period))
+            self.action(*Network.process(self.state()))
         score = self.score_real_time()
         self.reset()
         # score should always be > 0
@@ -138,6 +224,7 @@ class Herd(object):
         nb_sensors = 1,
         nb_actors = 1,
         nb_add_neurons = 0,
+        period = 1,
         problem = None,
         size = 5,
         mutation_coefficent = 0.1,
@@ -148,7 +235,9 @@ class Herd(object):
         self.nb_sensors = nb_sensors
         self.nb_actors = nb_actors
         self.nb_add_neurons = nb_add_neurons
+        self.period = period
         if problem == None:
+            # The empty problem, just here for quick tests
             self.Problem = Problem()
         else:
             self.Problem = problem
@@ -158,7 +247,7 @@ class Herd(object):
         self.nb_tests = nb_tests
         self.Problem_pool = extend([self.Problem], self.size*self.nb_tests)
         self.members = [
-            Network(nb_sensors, nb_actors, nb_add_neurons, **kwargs)
+            Network(nb_sensors, nb_actors, nb_add_neurons, period, **kwargs)
             for i in range(size)
         ]
         self.array_scores = []
@@ -247,11 +336,13 @@ class Network(object):
         nb_sensors = 1,
         nb_actors = 0,
         nb_add_neurons = 0,
+        period = 1,
         **kwargs # "weight", "bias", "slices", "regions"
     ):
         self.nb_sensors = nb_sensors
         self.nb_actors = nb_actors
         self.nb_add_neurons = nb_add_neurons
+        self.period = period
         self.nb_neurons = nb_add_neurons + nb_actors + nb_sensors
         self.values = np.zeros((self.nb_neurons))
         if ("slices" in kwargs and "regions" in kwargs):
@@ -437,6 +528,7 @@ class TestBench(object):
         nb_herds = 1,
         nb_generations = 20,
         nb_add_neurons = 9,
+        period = 1,
         size = 100,
         mutation_coefficent = 0.0001,
         mutation_amplitude = 0.01,
@@ -453,6 +545,7 @@ class TestBench(object):
         self.problem = problem
         self.nb_sensors = problem.nb_sensors
         self.nb_actors = problem.nb_actors
+        self.period = period
         self.colors = ["r", "g", "b", "c", "m", "y", "k"]
         self.nb_herds = nb_herds
         self.nb_generations = nb_generations
@@ -463,6 +556,7 @@ class TestBench(object):
         self.display_mode = display_mode
         self.values_simple = self.nb_herds*[1]
         self.values_nb_add_neurons = [0, 1, 2, 3, 4, 5, 6]
+        self.values_period = [1, 2, 3, 4, 5, 6, 7]
         self.values_sizes = [5, 10, 50, 100, 500, 1000]
         self.values_mutation_coefficients = [0.0001, 0.000005, 0.00001]
         self.values_mutation_amplitude = [0.01, 0.005, 0.001]
@@ -476,6 +570,7 @@ class TestBench(object):
             self.nb_sensors,
             self.nb_actors,
             self.nb_add_neurons,
+            self.period,
             self.problem,
             self.size,
             self.mutation_coefficent,
@@ -491,27 +586,32 @@ class TestBench(object):
                 values = self.values_nb_add_neurons
             array_inputs = np.array([base for i in range(len(values))])
             array_inputs[:,2] = values
-        if mode in [2, "size"]:
+        if mode in [2, "period"]:
+            if values == None:
+                values = self.period
+            array_inputs = np.array([base for i in range(len(values))])
+            array_inputs[:,3] = values
+        if mode in [3, "size"]:
             if values == None:
                 values = self.values_sizes
             array_inputs = np.array([base for i in range(len(values))])
-            array_inputs[:,4] = values
-        if mode in [3, "coefficient_mutation"]:
+            array_inputs[:,5] = values
+        if mode in [4, "coefficient_mutation"]:
             if values == None:
                 values = self.values_mutation_coefficients
             array_inputs = np.array([base for i in range(len(values))])
-            array_inputs[:,5] = values
-        if mode in [4, "coefficient_amplitude"]:
+            array_inputs[:,6] = values
+        if mode in [5, "coefficient_amplitude"]:
             if values == None:
                 values = self.values_mutation_amplitude
             array_inputs = np.array([base for i in range(len(values))])
-            array_inputs[:,6] = values
-        if mode in [5, "nb_tests"]:
+            array_inputs[:,7] = values
+        if mode in [6, "nb_tests"]:
             if values == None:
                 values = self.values_nb_tests
             array_inputs = np.array([base for i in range(len(values))])
-            array_inputs[:,6] = values
-        if mode in [6, "multiple"]:
+            array_inputs[:,8] = values
+        if mode in [7, "multiple"]:
             if values == None:
                 raise(ValueError("An array must be in input"))
             array_inputs = np.array([base for i in range(len(values))])
@@ -521,14 +621,15 @@ class TestBench(object):
             "(1) nb_captors\n",
             "(2) nb_actors\n",
             "(3) nb_add_neurons\n",
-            "(4) Problem\n",
-            "(5) herd's size\n",
-            "(6) mutation_coefficent\n",
-            "(7) mutation_amplitude\n",
-            "(8) nb_tests\n",
-            "(9) colors\n",
+            "(4) period\n"
+            "(5) Problem\n",
+            "(6) herd's size\n",
+            "(7) mutation_coefficent\n",
+            "(8) mutation_amplitude\n",
+            "(9) nb_tests\n",
+            "(10) colors\n",
             "\n",
-            "(1)(2)(3)(4)(5)(6)(7)(8)(9)"
+            "(1)(2)(3)(4)(5)(6)(7)(8)(9)(10)"
         )
         for i in range(len(values)):
             print(*array_inputs[i], self.colors[i%len(self.colors)])

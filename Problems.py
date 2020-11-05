@@ -27,7 +27,6 @@ class Centre_Game_1(Problem):
         self.y = np.random.rand() - 0.5
         self.displayed = displayed
         self.nb_remaining_actions = 10
-        self.period = 1
         if displayed:
             self.t = turtle.Turtle()
             self.t.speed(speed = 0)
@@ -53,7 +52,7 @@ class Centre_Game_1(Problem):
         """
         while self.nb_remaining_actions > 0:
             self.nb_remaining_actions -= 1
-            self.action(*Network.process(self.state(), self.period))
+            self.action(*Network.process(self.state()))
         score = self.score_real_time()
         self.reset()
         return(score*(score>0) + 0)
@@ -78,7 +77,6 @@ class Centre_Game_2(Problem):
         self.y = np.random.rand() - 0.5
         self.displayed = displayed
         self.nb_remaining_actions = 10
-        self.period = 1
         if displayed:
             self.display()
 
@@ -107,7 +105,7 @@ class Centre_Game_2(Problem):
         """
         while self.nb_remaining_actions > 0:
             self.nb_remaining_actions -= 1
-            self.action(*Network.process(self.state(), self.period))
+            self.action(*Network.process(self.state()))
         score = self.score_real_time()
         self.reset()
         return(score*(score>0) + 0)
