@@ -10,10 +10,11 @@ The aim of this program is to create an AI
 The training is parallelized
 """
 
+# Necessary
 import numpy as np
 import multiprocessing as mp
 import copy
-import turtle
+# Use full for easy data visualisation
 import matplotlib.pyplot as plt
 
 
@@ -43,7 +44,6 @@ def prob_reproduction(X):
     X[3] = mutation_amplitude
     returns the mutation of the chosen one
     """
-    #np.random.seed() # without it every thread has the same RNG
     return(np.random.choice(X[0], p=X[1]).mutate(X[2], X[3]))
 
 def evaluate(X):
@@ -56,93 +56,6 @@ def evaluate(X):
     return(X[0].experience(X[1]))
 
 
-class Problem_Gan(object):
-    """
-    I'd like to make a something like a GAN which would simulate simultanious
-    evolution
-    The idea is that this kind of problem would also be able to generalise the
-    simple one
-    """
-    def __init__(self,
-        nb_sensors_generator,
-        nb_actors_generator,
-        nb_sensors_discriminator,
-        nb_actors_discriminator,
-        discriminator
-        ):
-        self.nb_sensors_generator= nb_sensors_discriminator
-        self.nb_actors_generator= nb_actors_generator
-        self.nb_sensors_discriminator = nb_sensors_discriminator
-        self.nb_actors_discriminator = nb_actors_discriminator
-        self.discriminator = discriminator
-
-    def experience(self, Generator, Discriminator):
-        """
-        Computes the actions of some networks on the problem
-        This is the main function of a problem
-        """
-        print("Warning  : experience was not fully configured")
-        while not self.end_condition():
-            Discriminator.process(Generator.process(self.noise()))
-        score = self.score_real_time()
-        self.reset()
-        # score should always be > 0
-        return(score*(score>0) + 0)
-
-    def end_condition(self):
-        """
-        True if the Problem is finished for whatever reason
-        False if it goes on
-        """
-        print("Warning  : end_condition was not fully configured")
-        return(True)
-
-    def state(self):
-        """
-        Returns the state of the problem
-        """
-        print("Warning  : state was not fully configured")
-        return(np.array([1]))
-
-    def noise(self):
-        """
-        Return some appropriate noise
-        """
-        return(np.random.random())
-
-    # Other state related functions should be there
-
-    def score_real_time(self):
-        """
-        Returns the score of the problem at the moment
-        """
-        print("Warning score_real_time was not fully configured")
-        return(0)
-
-    def action(self, Generator_data):
-        """
-        Computes the consequences of the input_data on the problem
-        """
-        print("Warning  : action was not fully configured")
-        pass
-
-    # Other action related functions should be put here
-
-    def display(self):
-        """
-        Shows how things are doing
-        """
-        print("Warning : experience was not fully configured")
-
-    # Other display functions should be put here
-
-    def reset(self):
-        """
-        Resets the problem
-        """
-        self.__init__()
-
-
 class Problem(object):
     """
     The frame of any "live" problem
@@ -150,7 +63,7 @@ class Problem(object):
     def __init__(self):
         self.nb_sensors = 1
         self.nb_actors = 1
-        print("Warning  : __init__ was not fully configured") 
+        print("Warning  : __init__ was not fully configured")
 
     def experience(self, Network):
         """
@@ -163,7 +76,7 @@ class Problem(object):
         score = self.score_real_time()
         self.reset()
         # score should always be > 0
-        return(score*(score>0) + 0)
+        return(score*(score>0))
 
     def end_condition(self):
         """
@@ -332,11 +245,27 @@ class Herd(object):
 
 class Network(object):
     """
+    A neural network, but won directional
+    it has input, output, and hidden neurons
+    and can process the input multiple time, sometime making it pass through
+    the same neurons more than once.
+    I expect it to make them faster, smaller, and capable of making faster
+    "life or death" decisions given the fact that the input neurons are in
+    direct contact with the output neurons (and some other neurons make a short
+    cut too), so I believe the Network will have both fast and slow thinking.
+    This is how the neurons are placed
+    [
+    input : [           fastest thinking]
+            [                           ]
+            [                           ]
+            [slowest thinking           ]
+                                   output
+    ]
     """
     def __init__(
         self,
-        nb_sensors = 1,
-        nb_actors = 0,
+        nb_sensors = 1, # Note that if you want only one neuron just take
+        nb_actors = 0, # one sensor and no actor
         nb_add_neurons = 0,
         period = 1,
         **kwargs # "weight", "bias", "slices", "regions"
@@ -641,22 +570,11 @@ class TestBench(object):
                 dtype = object
             )
             array_inputs = values
-        print(
-            "\n",
-            "(1) nb_captors\n",
-            "(2) nb_actors\n",
-            "(3) nb_add_neurons\n",
-            "(4) period\n",
-            "(5) herd's size\n",
-            "(6) mutation_coefficent\n",
-            "(7) mutation_amplitude\n",
-            "(8) nb_tests\n",
-            "(9) colors\n",
-            "\n",
-            "(1)(2)(3)(4)(5)(6)(7)(8)(9)"
-        )
+        test_colors = np.array([[self.colors[i%len(self.colors)]]
+                       for i in range(len(values))])
+        test_values = np.concatenate((array_inputs, test_colors), axis = 1)
+        self.display_table(test_values)
         for i in range(len(values)):
-            print(*array_inputs[i], self.colors[i%len(self.colors)])
             H = Herd(*array_inputs[i], **self.kwargs)
             self.series.append(H.evolve(self.problem, nb_generations))
             self.archives.append([H.members[0], self.series])
@@ -666,6 +584,18 @@ class TestBench(object):
             if self.display_mode in [1, "plot"]:
                 self.display_plot()
         self.series = []
+
+    def display_table(self, Variables_values):
+        Variables_name_1 = np.array(["nb of", "nb of",
+                          "nb of added", "",
+                          "herd's", "mutation",
+                          "mutation", "nb of", ""])
+        Variables_name_2 = np.array(["sensors", "actors", "neurons", "period",
+                                     "size", "coefficent", "amplitude",
+                                     "tests", "color"])
+        form ="{:<8} {:<7} {:<12} {:<7} {:<7} {:<11} {:<11} {:<7} {:<0}"
+        for i in [Variables_name_1, Variables_name_2, *Variables_values]:
+            print(form.format(*i))
 
     def display_console(self, archive = False):
         if archive:
