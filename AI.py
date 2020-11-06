@@ -60,6 +60,37 @@ def evaluate(X):
     """
     return(X[0].experience(X[1]))
 
+def extract(file_name):
+    """
+    Extract all the Networks from a save file and put them in a list
+    I lose data in the process, must investigate that
+    seems that np.float64 doesn't do the job
+    """
+    f = open(file_name, "r")
+    r = []
+    exit = False
+    while not exit:
+        if f.readline() == "Network\n":
+            nb_sensors = int(float(f.readline()))
+            nb_actors = int(float(f.readline()))
+            nb_add_neurons = int(float(f.readline()))
+            period = int(float(f.readline()))
+            size = nb_sensors + nb_add_neurons + nb_actors
+            weights = np.zeros((size, size))
+            bias = np.zeros((size))
+            values = np.zeros((size))
+            for i in range(size**2):
+                weights[i//size][i%size] = np.float64(f.readline())
+            for i in range(size):
+                bias[i] = np.float64(f.readline())
+            for i in range(size):
+                values[i] = np.float64(f.readline())
+            N = Network(nb_sensors, nb_actors, nb_add_neurons, period,
+                        weights=weights, bias=bias)
+            r.append(N)
+        else:
+            exit = True
+    return(r)
 
 class Problem(object):
     """
@@ -124,6 +155,9 @@ class Problem(object):
 
     # Other display functions should be put here
 
+    def __name__(self):
+        return("An_Unnamed_Problem")
+
     def reset(self):
         """
         Resets the problem
@@ -181,7 +215,7 @@ class Herd(object):
             # Saves the scores
             self.array_scores.append(sum(self.score)/self.size)
             # Saves one Network
-            self.members[0].save("most_evolved" + self.date, "w", False)
+            self.members[0].save(problem.__name__() + self.date, "a", False)
         return(self.array_scores)
 
     def reproduce(self, proba_reproduction):
@@ -276,7 +310,7 @@ class Network(object):
         nb_actors = 0, # one sensor and no actor
         nb_add_neurons = 0,
         period = 1,
-        **kwargs # "weight", "bias", "slices", "regions"
+        **kwargs # "weights", "bias", "slices", "regions"
     ):
         self.nb_sensors = nb_sensors
         self.nb_actors = nb_actors
@@ -290,11 +324,11 @@ class Network(object):
             self.slices = [nb_sensors] + kwargs["slices"] + [nb_actors]
             self.regions = kwargs["regions"]
             self.squared()
-        elif "weight" not in kwargs and "bias" not in kwargs:
+        elif "weights" not in kwargs and "bias" not in kwargs:
             self.random_set_up()
         elif (
-            kwargs["weights"].shape == (nb_neurons, nb_neurons)
-            and kwargs["bias"].shape == (nb_neurons,)
+            kwargs["weights"].shape == (self.nb_neurons, self.nb_neurons)
+            and kwargs["bias"].shape == (self.nb_neurons,)
         ):
             self.weights = kwargs["weights"]
             self.bias = kwargs["bias"]
@@ -339,6 +373,7 @@ class Network(object):
                + "sensors : {}\n".format(self.nb_sensors)
                + "actors : {}\n".format(self.nb_actors)
                + "added neurons : {}\n".format(self.nb_add_neurons)
+               + "period : {}\n".format(self.period)
                + "weights :\n{}\n".format(self.weights)
                + "bias :\n{}\n".format(self.bias)
                + "values :\n{}\n".format(self.values))
@@ -467,9 +502,11 @@ class Network(object):
             file_name += date()
         f = open(file_name, mode)
         f.write(
-            str(self.nb_sensors) + "\n"
+            "Network\n"
+            + str(self.nb_sensors) + "\n"
             + str(self.nb_actors) + "\n"
             + str(self.nb_add_neurons) + "\n"
+            + str(self.period) + "\n"
         )
         for i in self.weights:
             for j in i:
@@ -478,6 +515,7 @@ class Network(object):
             f.write(str(i) + "\n")
         for i in self.values:
             f.write(str(i) + "\n")
+        f.close()
 
 
 class TestBench(object):

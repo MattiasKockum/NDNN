@@ -286,6 +286,9 @@ class Car(Problem):
     def put_down_turtle(self, x, y):
         self.t.setpos((500/self.size)*x - 250, (500/self.size)*y - 250)
 
+    def __name__(self):
+        return("Car")
+
     def reset(self):
         if self.displayed:
             self.t.clear()
@@ -307,6 +310,7 @@ def main():
         1, # nb_herds
         5, # nb_generations
         9, # nb_add_neurons
+        1, # period
         5, # size
         0.5, # mutation_coefficient
         0.005, # mutation_amplitude

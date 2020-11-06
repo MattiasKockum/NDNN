@@ -61,6 +61,9 @@ class Centre_Game_1(Problem):
     def score_real_time(self):
         return(1/(1 + (self.x**2 + self.y**2)))
 
+    def __name__(self):
+        return("Centre_Game_1")
+
     def reset(self):
         self.__init__(self.displayed)
 
@@ -114,6 +117,9 @@ class Centre_Game_2(Problem):
     def score_real_time(self):
         return(1/(1 + (self.x**2 + self.y**2)))
 
+    def __name__(self):
+        return("Centre_Game_2")
+
     def reset(self):
         self.__init__(self.displayed)
 
@@ -160,6 +166,9 @@ class Gradient_Descent_Test():
 
     def score_real_time(self):
         return(gradient(self.weight, self.bias))
+
+    def __name__(self):
+        return("Gradient_Descent_Test")
 
     def reset(self):
         self.__init__(self.timer, self.results, self.display_mode)

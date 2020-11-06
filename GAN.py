@@ -11,6 +11,11 @@ from AI import *
 
 class Gan(Problem):
     """
+
+    Conception ERROR
+    Due to parallelization we train multiple discriminators at the same time
+    that's not efficient
+
     A GAN which simulates simultanious evolution
     useful for generating cute pics of cats
     but the fact that the Networks play continuously in time could be useful
