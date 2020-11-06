@@ -304,11 +304,11 @@ class Car(Problem):
 
 
 def main():
-    P = Car(False, 100)
+    P = Car(False, 5)
     TB = TestBench(
         P,
         1, # nb_herds
-        5, # nb_generations
+        100, # nb_generations
         9, # nb_add_neurons
         1, # period
         5, # size

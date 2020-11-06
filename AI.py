@@ -206,6 +206,7 @@ class Herd(object):
             self.Problem = Problem()
         else:
             self.Problem = problem
+        score_file = open("score" + self.date, "w")
         self.Problem_pool = extend([self.Problem], self.size*self.nb_tests)
         for generation in range(nb_generations):
             # Evaluation of performances
@@ -214,8 +215,10 @@ class Herd(object):
             self.reproduce(proba_reproduction)
             # Saves the scores
             self.array_scores.append(sum(self.score)/self.size)
-            # Saves one Network
-            self.members[0].save(problem.__name__() + self.date, "a", False)
+            # Saves one Network and the score evolution
+            self.members[0].save(problem.__name__() + self.date, "w", False)
+            score_file.write(str(self.score) + "\n")
+        score_file.close()
         return(self.array_scores)
 
     def reproduce(self, proba_reproduction):
@@ -223,8 +226,9 @@ class Herd(object):
         The copy of the successful networks with mutation
         parallelized
         """
+        pool = mp.Pool()
         self.members = (
-            mp.Pool().map(
+            pool.map(
                 prob_reproduction,
                 [(
                     self.members,
@@ -234,6 +238,7 @@ class Herd(object):
                 )]*self.size
             )
         )
+        pool.close()
 
     def performances(self):
         """
@@ -242,10 +247,12 @@ class Herd(object):
         """
         self.members_pool = extend(self.members, self.nb_tests)
         # parallelize the evaluation of the networks
-        member_s_points = mp.Pool().map(
+        pool = mp.Pool()
+        member_s_points = pool.map(
             evaluate,
             [(P, M) for P,M in zip(self.Problem_pool, self.members_pool)]
         )
+        pool.close()
         # Put this code if you want to observe evolution, especially in the
         # Gradient Descent Problem because somehow the use of the mp.Pool().map
         # function seems to not make it work
