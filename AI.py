@@ -14,9 +14,14 @@ The training is parallelized
 import numpy as np
 import multiprocessing as mp
 import copy
+import time
 # Use full for easy data visualisation
 import matplotlib.pyplot as plt
 
+
+def date():
+    t = time.localtime()
+    return("_{}_{}_{}_{}_{}".format(t[0], t[1], t[2], t[3], t[4]))
 
 def sigmoid(x):
 	return(2*((1/(1+np.e**(-x)))-0.5))
@@ -161,6 +166,7 @@ class Herd(object):
         """
         The idea is to make the AI evolve by aproximating the gradient descent
         """
+        self.date = date()
         if problem == None:
             # The empty problem, just here for quick tests
             self.Problem = Problem()
@@ -174,6 +180,8 @@ class Herd(object):
             self.reproduce(proba_reproduction)
             # Saves the scores
             self.array_scores.append(sum(self.score)/self.size)
+            # Saves one Network
+            self.members[0].save("most_evolved" + self.date, "w", False)
         return(self.array_scores)
 
     def reproduce(self, proba_reproduction):
@@ -255,11 +263,11 @@ class Network(object):
     cut too), so I believe the Network will have both fast and slow thinking.
     This is how the neurons are placed
     [
-    input : [           fastest thinking]
-            [                           ]
-            [                           ]
-            [slowest thinking           ]
-                                   output
+    input : [                 fastest thinking]
+            [                                 ]
+            [                                 ]
+            [slowest thinking                 ]
+                                          output
     ]
     """
     def __init__(
@@ -327,9 +335,10 @@ class Network(object):
         self.bias = np.random.rand(self.nb_neurons) - 0.5
 
     def display_console(self):
-        return("neurons : {}\n".format(self.nb_neurons)
+        print("neurons : {}\n".format(self.nb_neurons)
                + "sensors : {}\n".format(self.nb_sensors)
                + "actors : {}\n".format(self.nb_actors)
+               + "added neurons : {}\n".format(self.nb_add_neurons)
                + "weights :\n{}\n".format(self.weights)
                + "bias :\n{}\n".format(self.bias)
                + "values :\n{}\n".format(self.values))
@@ -421,9 +430,6 @@ class Network(object):
         # Returns the new number of nerons
         return(self.nb_neurons)
 
-    def reset(self):
-        self.values = np.zeros(self.values.shape)
-
     def mutate(self, mutation_coefficent, mutation_amplitude):
         """
         Return the mutated Network
@@ -447,6 +453,31 @@ class Network(object):
                         np.random.normal(0, mutation_amplitude)
                     )
         return(mn)
+
+    def reset(self):
+        self.values = np.zeros(self.values.shape)
+
+    def save(self, file_name = None, mode = "a", add_date = True):
+        """
+        Saves the Network into a file
+        """
+        if file_name == None:
+            file_name = "NDNN"
+        if add_date:
+            file_name += date()
+        f = open(file_name, mode)
+        f.write(
+            str(self.nb_sensors) + "\n"
+            + str(self.nb_actors) + "\n"
+            + str(self.nb_add_neurons) + "\n"
+        )
+        for i in self.weights:
+            for j in i:
+                f.write(str(j) + "\n")
+        for i in self.bias:
+            f.write(str(i) + "\n")
+        for i in self.values:
+            f.write(str(i) + "\n")
 
 
 class TestBench(object):
@@ -514,7 +545,7 @@ class TestBench(object):
                 [base for i in range(len(values))],
                 dtype = object
             )
-        if mode in [1, "nb_neurons"]:
+        elif mode in [1, "nb_neurons"]:
             if values == None:
                 values = self.values_nb_add_neurons
             array_inputs = np.array(
@@ -522,7 +553,7 @@ class TestBench(object):
                 dtype = object
             )
             array_inputs[:,2] = values
-        if mode in [2, "period"]:
+        elif mode in [2, "period"]:
             if values == None:
                 values = self.period
             array_inputs = np.array(
@@ -530,7 +561,7 @@ class TestBench(object):
                 dtype = object
             )
             array_inputs[:,3] = values
-        if mode in [3, "size"]:
+        elif mode in [3, "size"]:
             if values == None:
                 values = self.values_sizes
             array_inputs = np.array(
@@ -538,7 +569,7 @@ class TestBench(object):
                 dtype = object
             )
             array_inputs[:,5] = values
-        if mode in [4, "coefficient_mutation"]:
+        elif mode in [4, "coefficient_mutation"]:
             if values == None:
                 values = self.values_mutation_coefficients
             array_inputs = np.array(
@@ -546,7 +577,7 @@ class TestBench(object):
                 dtype = object
             )
             array_inputs[:,6] = values
-        if mode in [5, "coefficient_amplitude"]:
+        elif mode in [5, "coefficient_amplitude"]:
             if values == None:
                 values = self.values_mutation_amplitude
             array_inputs = np.array(
@@ -554,7 +585,7 @@ class TestBench(object):
                 dtype = object
             )
             array_inputs[:,7] = values
-        if mode in [6, "nb_tests"]:
+        elif mode in [6, "nb_tests"]:
             if values == None:
                 values = self.values_nb_tests
             array_inputs = np.array(
@@ -562,7 +593,7 @@ class TestBench(object):
                 dtype = object
             )
             array_inputs[:,8] = values
-        if mode in [7, "multiple"]:
+        elif mode in [7, "multiple"]:
             if values == None:
                 raise(ValueError("An array must be in input"))
             array_inputs = np.array(
@@ -574,15 +605,18 @@ class TestBench(object):
                        for i in range(len(values))])
         test_values = np.concatenate((array_inputs, test_colors), axis = 1)
         self.display_table(test_values)
+        # Starts learning !
         for i in range(len(values)):
             H = Herd(*array_inputs[i], **self.kwargs)
             self.series.append(H.evolve(self.problem, nb_generations))
             self.archives.append([H.members[0], self.series])
+        # display
         if self.display_mode != None:
             if self.display_mode in [0, "console"]:
                 self.display_console()
             if self.display_mode in [1, "plot"]:
                 self.display_plot()
+        # reset the self.series for if it is needed after
         self.series = []
 
     def display_table(self, Variables_values):
