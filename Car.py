@@ -150,9 +150,7 @@ class Car(Problem):
         while not self.end_condition():
             self.action(*Network.process(self.state(), self.period))
         score = self.score_real_time()
-        print("1 : \n", self.Circuit.__repr__())
         self.reset()
-        print("2 : \n", self.Circuit.__repr__())
         return(score)
 
     def end_condition(self):
