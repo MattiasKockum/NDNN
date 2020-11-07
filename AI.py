@@ -58,6 +58,8 @@ def evaluate(X):
     X[1] is a network
     returns the score of the network
     """
+    np.random.seed()
+    X[0].reset()
     return(X[0].experience(X[1]))
 
 def extract(file_name):
@@ -91,6 +93,16 @@ def extract(file_name):
         else:
             exit = True
     return(r)
+
+def retake(file_name, size = 100, mc = 0.1, ma = 0.001, nb_tests = 2):
+    """
+    Recreate a Herd based on a saved Network
+    """
+    N = extract(file_name)[0]
+    H = Herd(N.nb_sensors, N.nb_actors, N.nb_add_neurons, N.period, size,
+             mc, ma, nb_tests, weights = N.weights, bias = N.bias)
+    return(H)
+
 
 class Problem(object):
     """
@@ -195,14 +207,14 @@ class Herd(object):
             for i in range(size)
         ]
         self.array_scores = []
+        self.date = date()
 
     def evolve(self, problem, nb_generations=1):
         """
         The idea is to make the AI evolve by aproximating the gradient descent
-        Opens and closes the score output file multiple times so that it's 
+        Opens and closes the score output file multiple times so that it's
         possible to see what's going on in during the training
         """
-        self.date = date()
         if problem == None:
             # The empty problem, just here for quick tests
             self.Problem = Problem()

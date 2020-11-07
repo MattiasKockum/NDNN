@@ -150,7 +150,9 @@ class Car(Problem):
         while not self.end_condition():
             self.action(*Network.process(self.state(), self.period))
         score = self.score_real_time()
+        print("1 : \n", self.Circuit.__repr__())
         self.reset()
+        print("2 : \n", self.Circuit.__repr__())
         return(score)
 
     def end_condition(self):
@@ -299,7 +301,8 @@ class Car(Problem):
             self.Δt,
             self.dmax,
             self.turning_circle,
-            self.engine_quality
+            self.engine_quality,
+            circuit = None
         )
 
 
@@ -311,10 +314,10 @@ def main():
         500, # nb_generations
         9, # nb_add_neurons
         1, # period
-        50, # size
+        3, # size
         0.05, # mutation_coefficient
         0.005, # mutation_amplitude
-        20, # nb_tests
+        2, # nb_tests
         slices=[5, 4],
         regions=[
             [False, True, False, False],
