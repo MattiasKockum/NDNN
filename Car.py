@@ -25,48 +25,77 @@ class Circuit():
         self.size = size
         self.pos0 = np.array([0.5, 0.5])
         self.dir0 = np.array([1.0, 0.0])
-        self.road, self.path = self.road_generation()
-        self.path_len = len(self.path)
+        self.road = -np.ones((self.size, self.size))
+        self.path = []
+        self.road_generation()
+        self.path_len = self.road[self.pos_final]
 
     def road_generation(self):
-        road = -np.ones((self.size, self.size))
-        path = []
+        self.make_circuit()
+        self.make_points()
+
+    def make_circuit(self):
+        """
+        Makes an empty circuit
+        """
+        dead_end = []
+        possibilites = [0, 3] # To be updated if the starting point changes
         i = 0
         x = 0
         y = 0
-        while not self.end_condition(i, x, y):
-            direction = np.random.randint(5)
-            if direction == 0:
-                if y + 1 < self.size:
-                    road[x, y] = i
-                    path.append((x, y))
-                    i += 1
-                    y += 1
-            elif direction == 1:
-                if x - 1 > 0:
-                    road[x, y] = i
-                    path.append((x, y))
-                    i += 1
-                    x -= 1
-            elif direction == 2:
-                if y - 1 > 0:
-                    road[x, y] = i
-                    path.append((x, y))
-                    i += 1
-                    y -= 1
-            elif direction == 3:
-                if x + 1 < self.size:
-                    road[x, y] = i
-                    path.append((x, y))
-                    i += 1
-                    x += 1
-        self.posfin = np.array([x, y])
-        road[x, y] = i
-        return(road, path)
+        while not self.end_construction_condition(i, x, y):
+            direction = np.random.choice(possibilites)
+            possibilites.remove(direction)
+            if (
+                direction == 0
+                and y + 1 < self.size
+                and (x, y + 1) not in self.path
+                and (x, y + 1) not in dead_end
+            ):
+                self.path.append((x, y))
+                possibilites = [1, 2, 3]
+                i += 1
+                y += 1
+            elif (
+                direction == 1
+                and x - 1 > 0
+                and (x - 1, y) not in self.path
+                and (x - 1, y) not in dead_end
+            ):
+                self.path.append((x, y))
+                possibilites = [0, 2, 3]
+                i += 1
+                x -= 1
+            elif (
+                direction == 2
+                and y - 1 > 0
+                and (x, y - 1) not in self.path
+                and (x, y - 1) not in dead_end
+            ):
+                self.path.append((x, y))
+                possibilites = [0, 1, 3]
+                i += 1
+                y -= 1
+            elif (
+                direction == 3
+                and x + 1 < self.size
+                and (x + 1, y) not in self.path
+                and (x + 1, y) not in dead_end
+            ):
+                self.path.append((x, y))
+                possibilites = [0, 1, 2]
+                i += 1
+                x += 1
+            if possibilites == []:
+                # Have self.path all the neighbours
+                dead_end.append((x, y))
+                self.path = self.path[:-1]
+                x, y = self.path[-1]
+                possibilites = [0, 1, 2, 3]
+        self.pos_final = (x, y)
+        self.path.append((x, y))
 
-    def end_condition(self, i, x, y):
-        """
-        """
+    def end_construction_condition(self, i, x, y):
         return(
             i >= self.size
             and (
@@ -75,6 +104,45 @@ class Circuit():
                 or y == 0
                 or y == self.size - 1)
               )
+
+    def make_points(self):
+        """
+        Puts the points on the circuit
+        """
+        still_to_explore = [(0, 0)]
+        self.road[0][0] = 0
+        while still_to_explore != []:
+            x, y = still_to_explore[-1]
+            still_to_explore = still_to_explore[:-1]
+            actual_points = self.road[x][y]
+            if (
+                x + 1 < self.size
+                and (x + 1, y) in self.path
+                and not (-1 < self.road[x + 1][y] < actual_points)
+            ):
+                still_to_explore.append((x + 1, y))
+                self.road[x + 1][y] = actual_points + 1
+            if (
+                y + 1 < self.size
+                and (x, y + 1) in self.path
+                and not (-1 < self.road[x][y + 1] < actual_points)
+            ):
+                still_to_explore.append((x, y + 1))
+                self.road[x][y + 1] = actual_points + 1
+            if (
+                x - 1 < self.size
+                and (x - 1, y) in self.path
+                and not (-1 < self.road[x - 1][y] < actual_points)
+            ):
+                still_to_explore.append((x - 1, y))
+                self.road[x - 1][y] = actual_points + 1
+            if (
+                y - 1 < self.size
+                and (x, y - 1) in self.path
+                and not (-1 < self.road[x][y - 1] < actual_points)
+            ):
+                still_to_explore.append((x, y - 1))
+                self.road[x][y - 1] = actual_points + 1
 
     def __repr__(self):
         s = ""
@@ -219,10 +287,10 @@ class Car(Problem):
         """
         Returns how far the car has gone, even if it turned back
         """
-        score_here = self.state_pos(self.pos)
+        score_here = self.state_pos(self.pos)/self.path_len
         if score_here > self.score_max:
             self.score_max = score_here
-        return(self.score_max/self.path_len)
+        return(self.score_max)
 
     def action(self, pedale, volant):
         self.acceleration += self.engine_quality*pedale*self.dir
