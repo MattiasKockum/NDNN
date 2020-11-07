@@ -314,10 +314,10 @@ def main():
         500, # nb_generations
         9, # nb_add_neurons
         1, # period
-        3, # size
+        100, # size
         0.05, # mutation_coefficient
-        0.005, # mutation_amplitude
-        2, # nb_tests
+        0.01, # mutation_amplitude
+        5, # nb_tests
         slices=[5, 4],
         regions=[
             [False, True, False, False],

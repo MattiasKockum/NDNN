@@ -243,25 +243,6 @@ class Herd(object):
         score_file.close()
         return(self.array_scores)
 
-    def reproduce(self, proba_reproduction):
-        """
-        The copy of the successful networks with mutation
-        parallelized
-        """
-        pool = mp.Pool()
-        self.members = (
-            pool.map(
-                prob_reproduction,
-                [(
-                    self.members,
-                    proba_reproduction,
-                    self.mutation_coefficent,
-                    self.mutation_amplitude
-                )]*self.size
-            )
-        )
-        pool.close()
-
     def performances(self):
         """
         Evaluates performances then normalises them for probability operations
@@ -287,6 +268,25 @@ class Herd(object):
             self.score = np.ones(self.size)
         score_modif = self.modif_score(self.score)
         return(score_modif)
+
+    def reproduce(self, proba_reproduction):
+        """
+        The copy of the successful networks with mutation
+        parallelized
+        """
+        pool = mp.Pool()
+        self.members = (
+            pool.map(
+                prob_reproduction,
+                [(
+                    self.members,
+                    proba_reproduction,
+                    self.mutation_coefficent,
+                    self.mutation_amplitude
+                )]*self.size
+            )
+        )
+        pool.close()
 
     def modif_score(self, score):
         """
@@ -397,44 +397,14 @@ class Network(object):
                 )
         self.bias = np.random.rand(self.nb_neurons) - 0.5
 
-    def display_console(self):
-        print("neurons : {}\n".format(self.nb_neurons)
-               + "sensors : {}\n".format(self.nb_sensors)
-               + "actors : {}\n".format(self.nb_actors)
-               + "added neurons : {}\n".format(self.nb_add_neurons)
-               + "period : {}\n".format(self.period)
-               + "weights :\n{}\n".format(self.weights)
-               + "bias :\n{}\n".format(self.bias)
-               + "values :\n{}\n".format(self.values))
-
-    def display(self):
+    def process(self, input_data, nb_iterations=1):
         """
-        Represents the network with
+        What the network does
         """
-        fig, ax = plt.subplots()
-        array = np.concatenate((
-            np.array([self.values]),
-            np.array([self.bias]),
-            self.weights
-        ))
-        im = ax.imshow(array)
-        ax.set_yticks(np.arange(self.nb_neurons + 2))
-        ax.set_yticklabels(["values"] + ["bias"] + ["weight"]*self.nb_neurons)
-        ax.set_xticks(np.arange(self.nb_neurons))
-        ax.set_xticklabels(
-            ["sensor"]*self.nb_sensors
-            + ["deep neuron"]*self.nb_add_neurons
-            + ["actor"]*self.nb_actors
-        )
-        plt.setp(
-            ax.get_xticklabels(),
-            rotation=45,
-            ha="right",
-            rotation_mode="anchor"
-        )
-        ax.set_title("values of internal values, weights and bias")
-        fig.tight_layout()
-        plt.show()
+        self.input(input_data)
+        for i in range(nb_iterations):
+            self.iteration()
+        return(self.output())
 
     def input(self, values_inputs):
         self.values[:self.nb_sensors] += values_inputs
@@ -450,15 +420,6 @@ class Network(object):
         self.values = sigmoid(
             np.matmul(self.weights, self.values)
             + self.bias)
-
-    def process(self, input_data, nb_iterations=1):
-        """
-        What the network does
-        """
-        self.input(input_data)
-        for i in range(nb_iterations):
-            self.iteration()
-        return(self.output())
 
     def add_neurons(self, add_neurons=1):
         """
@@ -518,9 +479,6 @@ class Network(object):
                     )
         return(mn)
 
-    def reset(self):
-        self.values = np.zeros(self.values.shape)
-
     def save(self, file_name = None, mode = "a", add_date = True):
         """
         Saves the Network into a file
@@ -545,6 +503,48 @@ class Network(object):
         for i in self.values:
             f.write(str(i) + "\n")
         f.close()
+
+    def reset(self):
+        self.values = np.zeros(self.values.shape)
+
+    def display_console(self):
+        print("neurons : {}\n".format(self.nb_neurons)
+               + "sensors : {}\n".format(self.nb_sensors)
+               + "actors : {}\n".format(self.nb_actors)
+               + "added neurons : {}\n".format(self.nb_add_neurons)
+               + "period : {}\n".format(self.period)
+               + "weights :\n{}\n".format(self.weights)
+               + "bias :\n{}\n".format(self.bias)
+               + "values :\n{}\n".format(self.values))
+
+    def display(self):
+        """
+        Represents the network with
+        """
+        fig, ax = plt.subplots()
+        array = np.concatenate((
+            np.array([self.values]),
+            np.array([self.bias]),
+            self.weights
+        ))
+        im = ax.imshow(array)
+        ax.set_yticks(np.arange(self.nb_neurons + 2))
+        ax.set_yticklabels(["values"] + ["bias"] + ["weight"]*self.nb_neurons)
+        ax.set_xticks(np.arange(self.nb_neurons))
+        ax.set_xticklabels(
+            ["sensor"]*self.nb_sensors
+            + ["deep neuron"]*self.nb_add_neurons
+            + ["actor"]*self.nb_actors
+        )
+        plt.setp(
+            ax.get_xticklabels(),
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor"
+        )
+        ax.set_title("values of internal values, weights and bias")
+        fig.tight_layout()
+        plt.show()
 
 
 class TestBench(object):
