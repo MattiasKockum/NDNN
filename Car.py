@@ -304,17 +304,17 @@ class Car(Problem):
 
 
 def main():
-    P = Car(False, 5)
+    P = Car(False, 8)
     TB = TestBench(
         P,
         1, # nb_herds
-        100, # nb_generations
+        500, # nb_generations
         9, # nb_add_neurons
         1, # period
         50, # size
-        0.5, # mutation_coefficient
+        0.05, # mutation_coefficient
         0.005, # mutation_amplitude
-        2, # nb_tests
+        20, # nb_tests
         slices=[5, 4],
         regions=[
             [False, True, False, False],

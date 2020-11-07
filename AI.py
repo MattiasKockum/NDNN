@@ -199,6 +199,8 @@ class Herd(object):
     def evolve(self, problem, nb_generations=1):
         """
         The idea is to make the AI evolve by aproximating the gradient descent
+        Opens and closes the score output file multiple times so that it's 
+        possible to see what's going on in during the training
         """
         self.date = date()
         if problem == None:
@@ -207,6 +209,9 @@ class Herd(object):
         else:
             self.Problem = problem
         score_file = open("score" + self.date, "w")
+        score_file.write(
+            "number of generations to proced : {}\n".format(nb_generations))
+        score_file.close()
         self.Problem_pool = extend([self.Problem], self.size*self.nb_tests)
         for generation in range(nb_generations):
             # Evaluation of performances
@@ -218,7 +223,11 @@ class Herd(object):
             self.array_scores.append(score)
             # Saves one Network and the score evolution
             self.members[0].save(problem.__name__() + self.date, "w", False)
+            score_file = open("score" + self.date, "a")
             score_file.write(str(score) + "\n")
+            score_file.close()
+        score_file = open("score" + self.date, "a")
+        score_file.write("End")
         score_file.close()
         return(self.array_scores)
 
