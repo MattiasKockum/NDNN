@@ -386,10 +386,10 @@ def main():
         5, # nb_tests
         slices=[5, 4],
         regions=[
+            [False, False, False, False],
+            [True, False, False, False],
             [False, True, False, False],
-            [False, False, True, False],
-            [False, False, False, True],
-            [False, False, False,False]
+            [False, False, True, False]
         ]
     )
     TB.test(0)

@@ -326,10 +326,10 @@ class Network(object):
     cut too), so I believe the Network will have both fast and slow thinking.
     This is how the neurons are placed
     [
-    input : [                 fastest thinking]
+    input : [                 slowest thinking]
             [                                 ]
             [                                 ]
-            [slowest thinking                 ]
+            [fastest thinking                 ]
                                           output
     ]
     """
