@@ -311,7 +311,7 @@ def main():
         100, # nb_generations
         9, # nb_add_neurons
         1, # period
-        5, # size
+        50, # size
         0.5, # mutation_coefficient
         0.005, # mutation_amplitude
         2, # nb_tests

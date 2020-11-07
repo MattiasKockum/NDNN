@@ -214,10 +214,11 @@ class Herd(object):
             # Reproduction (with mutation) of Networks
             self.reproduce(proba_reproduction)
             # Saves the scores
-            self.array_scores.append(sum(self.score)/self.size)
+            score = sum(self.score)/self.size
+            self.array_scores.append(score)
             # Saves one Network and the score evolution
             self.members[0].save(problem.__name__() + self.date, "w", False)
-            score_file.write(str(self.score) + "\n")
+            score_file.write(str(score) + "\n")
         score_file.close()
         return(self.array_scores)
 
