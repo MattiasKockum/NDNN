@@ -1,11 +1,11 @@
 # Non Directional Neural Network
 
-# What is it?
+## What is it?
 It's a neural network with only one layer, but this layer loops back onto
 itself, just like how the brain does: multiple neurons called at the same
 time and which call each other right after.
 
-# What is it disigned for?
+## What is it disigned for?
 The goal with this architecture is to mimic the brain and see what happens.
 I have some ideas on what type of data this architecture will be good for.
 For exemple live problems like driving a car: The network is constantly fed
@@ -16,7 +16,7 @@ Antother exemple is when a problem involve some long/short term memory,
 this architecture is able to provide memory cells that actually are neurons
 that loops on themselves.
 
-# How to use it?
+## How to use it?
 The main program is called AI.py and it provides the user with four useful
 classes : Problem, Herd, Network and TestBench.
 The Problem class is the framework of any live problem so it's easier for the
@@ -35,6 +35,7 @@ Then you run the test nb°0 and your machine starts to learn!
 
 For instance this can look like that car the Car.py problem
 
+```python
 P = Car(False, 8)
 TB = TestBench(
     P,
@@ -55,14 +56,16 @@ TB = TestBench(
     ]
 )
 TB.test(0)
+```
 
 Next what you can do is extracting the saved network and see how it performs.
 
 In this exemple it would look like that:
 
+```python
 N = extract("Car_place_your_date_in_here")[0]
 P = Car(True, 8)
 P.experience(N)
-
+```
 
 Have a nice learning session!
