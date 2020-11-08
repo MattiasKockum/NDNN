@@ -62,7 +62,14 @@ def evaluate(X):
     X[0].reset()
     return(X[0].experience(X[1]))
 
-def extract(file_name):
+def pooled_evolution(X):
+    """
+    Another one
+    """
+    r = X[0].evolve(X[1], X[2])
+    return(r, (X[0].members[0], r))
+
+def load_network(file_name):
     """
     Extract all the Networks from a save file and put them in a list
     I lose data in the process, must investigate that
@@ -94,11 +101,11 @@ def extract(file_name):
             exit = True
     return(r)
 
-def retake(file_name, size = 100, mc = 0.1, ma = 0.001, nb_tests = 2):
+def load_Herd(file_name, size = 100, mc = 0.1, ma = 0.001, nb_tests = 2):
     """
-    Recreate a Herd based on a saved Network
+    Recreate a Herd based on the saved Network
     """
-    N = extract(file_name)[0]
+    N = load_network(file_name)[0]
     H = Herd(N.nb_sensors, N.nb_actors, N.nb_add_neurons, N.period, size,
              mc, ma, nb_tests, weights = N.weights, bias = N.bias)
     return(H)
@@ -106,9 +113,13 @@ def retake(file_name, size = 100, mc = 0.1, ma = 0.001, nb_tests = 2):
 def load_score(file_name):
     f = open(file_name, "r")
     r = []
+    data = []
+    for i in range(7):
+        data.append(f.readline())
     nb_generations = int(f.readline()[35:])
     for i in range(nb_generations):
-        r.append(float(f.readline()))
+        line = f.readline()
+        r.append(float(line[line.index(":") + 2:-2]))
     return(r)
 
 
@@ -230,7 +241,15 @@ class Herd(object):
             self.Problem = problem
         score_file = open("score" + self.date, "w")
         score_file.write(
-            "number of generations to proceed : {}\n".format(nb_generations))
+            "score\n"
+            + "number of added neurons : {}\n".format(self.nb_add_neurons)
+            + "period : {}\n".format(self.period)
+            + "size : {}\n".format(self.size)
+            + "mutation coefficent : {}\n".format(self.mutation_coefficent)
+            + "mutation_amplitude : {}\n".format(self.mutation_amplitude)
+            + "number of tests : {}\n".format(self.nb_tests)
+            + "number of generations to proceed : {}\n".format(nb_generations)
+        )
         score_file.close()
         self.Problem_pool = extend([self.Problem], self.size*self.nb_tests)
         for generation in range(nb_generations):
@@ -244,10 +263,11 @@ class Herd(object):
             # Saves one Network and the score evolution
             self.members[0].save(problem.__name__() + self.date, "w", False)
             score_file = open("score" + self.date, "a")
-            score_file.write("generation n° {} : {}\n".format(generation, str(score)))
+            score_file.write(
+                "generation n° {} : {:<21}\n".format(generation, str(score)))
             score_file.close()
         score_file = open("score" + self.date, "a")
-        score_file.write("End")
+        score_file.write("End\n")
         score_file.close()
         return(self.array_scores)
 
@@ -643,7 +663,7 @@ class TestBench(object):
                 [base for i in range(len(values))],
                 dtype = object
             )
-            array_inputs[:,5] = values
+            array_inputs[:,4] = values
         elif mode in [4, "coefficient_mutation"]:
             if values == None:
                 values = self.values_mutation_coefficients
@@ -651,7 +671,7 @@ class TestBench(object):
                 [base for i in range(len(values))],
                 dtype = object
             )
-            array_inputs[:,6] = values
+            array_inputs[:,5] = values
         elif mode in [5, "coefficient_amplitude"]:
             if values == None:
                 values = self.values_mutation_amplitude
@@ -659,7 +679,7 @@ class TestBench(object):
                 [base for i in range(len(values))],
                 dtype = object
             )
-            array_inputs[:,7] = values
+            array_inputs[:,6] = values
         elif mode in [6, "nb_tests"]:
             if values == None:
                 values = self.values_nb_tests
@@ -667,7 +687,7 @@ class TestBench(object):
                 [base for i in range(len(values))],
                 dtype = object
             )
-            array_inputs[:,8] = values
+            array_inputs[:,7] = values
         elif mode in [7, "multiple"]:
             if values == None:
                 raise(ValueError("An array must be in input"))
@@ -681,6 +701,21 @@ class TestBench(object):
         test_values = np.concatenate((array_inputs, test_colors), axis = 1)
         self.display_table(test_values)
         # Starts learning !
+        # I should be able to parallelize it but I can't make it work for now
+        #pool = mp.Pool()
+        #Herd_Pool = [Herd(*array_inputs[i], **self.kwargs)
+                     #for i in range(len(values))]
+        #self.series, self.archives = pool.map(
+            #pooled_evolution,
+            #[(H, P, G)
+                #for (H, P, G) in zip(
+                    #Herd_Pool,
+                    #[self.problem]*len(values),
+                    #[nb_generations]*len(values)
+                #)
+            #]
+        #)
+        #pool.close()
         for i in range(len(values)):
             H = Herd(*array_inputs[i], **self.kwargs)
             self.series.append(H.evolve(self.problem, nb_generations))

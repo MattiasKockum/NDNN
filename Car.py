@@ -386,7 +386,7 @@ def main():
         3, # period
         100, # size
         0.02, # mutation_coefficient
-        0.5, # mutation_amplitude
+        0.001, # mutation_amplitude
         5, # nb_tests
         slices=[5, 4],
         regions=[
@@ -396,7 +396,7 @@ def main():
             [False, False, True, False]
         ]
     )
-    TB.test(0)
+    TB.test(5)
 
 if __name__ == "__main__":
     main()

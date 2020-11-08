@@ -40,30 +40,30 @@ P = Car(False, 8)
 TB = TestBench(
     P,
     1, # nb_herds
-    500, # nb_generations
+    50, # nb_generations
     9, # nb_add_neurons
     1, # period
-    50, # size
-    0.05, # mutation_coefficient
-    0.005, # mutation_amplitude
+    500, # size
+    0.02, # mutation_coefficient
+    0.001, # mutation_amplitude
     20, # nb_tests
     slices=[5, 4],
     regions=[
+        [False, False, False, False]
+        [True, False, False, False]
         [False, True, False, False],
         [False, False, True, False],
-        [False, False, False, True],
-        [False, False, False,False]
     ]
 )
 TB.test(0)
 ```
 
-Next what you can do is extracting the saved network and see how it performs.
+Next what you can do is load_networking the saved network and see how it performs.
 
 In this exemple it would look like that:
 
 ```python
-N = extract("Car_place_your_date_in_here")[0]
+N = load_network("Car_place_your_date_in_here")[0]
 P = Car(True, 8)
 P.experience(N)
 ```
