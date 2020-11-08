@@ -103,6 +103,14 @@ def retake(file_name, size = 100, mc = 0.1, ma = 0.001, nb_tests = 2):
              mc, ma, nb_tests, weights = N.weights, bias = N.bias)
     return(H)
 
+def load_score(file_name):
+    f = open(file_name, "r")
+    r = []
+    nb_generations = int(f.readline()[35:])
+    for i in range(nb_generations):
+        r.append(float(f.readline()))
+    return(r)
+
 
 class Problem(object):
     """
@@ -111,6 +119,7 @@ class Problem(object):
     def __init__(self):
         self.nb_sensors = 1
         self.nb_actors = 1
+        self.score = 0
         print("Warning  : __init__ was not fully configured")
 
     def experience(self, Network):
@@ -143,12 +152,11 @@ class Problem(object):
 
     # Other state related functions should be there
 
-    def score_real_time(self):
+    def score_update(self):
         """
-        Returns the score of the problem at the moment
+        Updates the score of the problem at the moment
         """
         print("Warning score_real_time was not fully configured")
-        return(0)
 
     def action(self, input_data):
         """
@@ -222,7 +230,7 @@ class Herd(object):
             self.Problem = problem
         score_file = open("score" + self.date, "w")
         score_file.write(
-            "number of generations to proced : {}\n".format(nb_generations))
+            "number of generations to proceed : {}\n".format(nb_generations))
         score_file.close()
         self.Problem_pool = extend([self.Problem], self.size*self.nb_tests)
         for generation in range(nb_generations):
@@ -236,7 +244,7 @@ class Herd(object):
             # Saves one Network and the score evolution
             self.members[0].save(problem.__name__() + self.date, "w", False)
             score_file = open("score" + self.date, "a")
-            score_file.write(str(score) + "\n")
+            score_file.write("generation n° {} : {}\n".format(generation, str(score)))
             score_file.close()
         score_file = open("score" + self.date, "a")
         score_file.write("End")

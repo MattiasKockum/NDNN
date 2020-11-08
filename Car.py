@@ -176,26 +176,27 @@ class Car(Problem):
         self,
         displayed = False,
         size = 8,
-        Δd = 0.01,
-        Δt = 0.01,
-        dmax = 4,
-        turning_circle = 1,
+        Δd = 0.01, # The length precision of the physics engine
+        Δt = 0.01, # The time precision of the physics engine
+        dmax = 4, # The distance at which the car can see
+        turning_circle = 1, # quality of the car
         engine_quality = 20,
         circuit = None,
-        period = 1
     ):
         # Circuit code
-        self.size = size
         if circuit == None:
             self.Circuit = Circuit(size)
+            self.circuit_pre_defined = False
         else:
             self.Circuit = circuit
+            self.circuit_pre_defined = True
+        self.size = self.Circuit.size
         self.path_len = self.Circuit.path_len
         self.pos = self.Circuit.pos0
         self.dir = self.Circuit.dir0
         # Physics
         self.speed = np.array([0.0, 0.0])
-        self.acceleration = np.array([0.0, 0.0]) 
+        self.acceleration = np.array([0.0, 0.0])
         self.Δd = Δd
         self.Δt = Δt
         # Car
@@ -204,20 +205,19 @@ class Car(Problem):
         self.engine_quality = engine_quality
         # Misc
         self.displayed = displayed
-        self.score_max = 0
+        self.score = 0
         # An impossible position in order to get into the loop
         self.previous_pos = np.array([-1, -1])
         # Network info
         self.nb_sensors = 9 + len(self.captors())
         self.nb_actors = 2
-        self.period = period
 
     def experience(self, Network):
         if self.displayed:
             self.display()
         while not self.end_condition():
-            self.action(*Network.process(self.state(), self.period))
-        score = self.score_real_time()
+            self.action(*Network.process(self.state()))
+        score = self.score
         self.reset()
         return(score)
 
@@ -235,7 +235,7 @@ class Car(Problem):
                 *self.acceleration,
                 *self.captors(),
                 *self.next_pos(),
-                self.score_real_time()
+                self.score
             ]
         ))
 
@@ -279,18 +279,17 @@ class Car(Problem):
         ])
 
     def next_pos(self):
-        if self.score_real_time() + 1 < len(self.Circuit.path):
-            return(self.Circuit.path[int(self.score_real_time()) + 1])
+        if self.score + 1 < len(self.Circuit.path):
+            return(self.Circuit.path[int(self.score) + 1])
         return((-1, -1))
 
-    def score_real_time(self):
+    def score_update(self):
         """
         Returns how far the car has gone, even if it turned back
         """
         score_here = self.state_pos(self.pos)/self.path_len
-        if score_here > self.score_max:
-            self.score_max = score_here
-        return(self.score_max)
+        if score_here > self.score:
+            self.score = score_here
 
     def action(self, pedale, volant):
         self.acceleration += self.engine_quality*pedale*self.dir
@@ -323,6 +322,7 @@ class Car(Problem):
             self.pos = pos_projection
         if self.displayed:
             self.put_down_turtle(self.pos[0], self.pos[1])
+        self.score_update()
 
     def display(self):
         self.t = turtle.Turtle()
@@ -360,6 +360,10 @@ class Car(Problem):
     def reset(self):
         if self.displayed:
             self.t.clear()
+        if self.circuit_pre_defined:
+            circuit = self.Circuit
+        else:
+            circuit = None
         self.__init__(
             self.displayed,
             self.size,
@@ -368,7 +372,7 @@ class Car(Problem):
             self.dmax,
             self.turning_circle,
             self.engine_quality,
-            circuit = None
+            circuit = circuit
         )
 
 
@@ -377,12 +381,12 @@ def main():
     TB = TestBench(
         P,
         1, # nb_herds
-        500, # nb_generations
+        20, # nb_generations
         9, # nb_add_neurons
-        1, # period
+        3, # period
         100, # size
-        0.05, # mutation_coefficient
-        0.01, # mutation_amplitude
+        0.02, # mutation_coefficient
+        0.5, # mutation_amplitude
         5, # nb_tests
         slices=[5, 4],
         regions=[

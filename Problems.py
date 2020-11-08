@@ -253,10 +253,10 @@ def main_test_game2():
         nb_tests = 5,
         slices=[3, 3],
         regions=[
+            [False, False, False, False],
+            [True, False, False, False],
             [False, True, False, False],
-            [False, False, True, False],
-            [False, False, False, True],
-            [False, False, False, False]
+            [False, False, True, False]
         ]
     )
     TB.test(5)
