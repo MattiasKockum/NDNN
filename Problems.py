@@ -212,6 +212,108 @@ def gradient(X, Y):
         + 1.4*np.exp(-(((X+0.2)/0.05)**2+((Y+0.2)/0.05)**2))
     )
 
+
+class Classifier(Problem):
+    """
+    This is a Classifier to improve how I do my Networks
+    This one will sort a 2D plane populated with Red and Blue dots
+    A negative outpu means Blue, a positive means Red
+    White means we don't care/no value was given
+    """
+    def __init__(self):
+        self.nb_sensors = 2
+        self.nb_actors = 1
+        self.score = 0
+        self.plane = np.array([
+            ["r", "r", "r", "r", "w", "w", "w", "w", "w", "w"], # ------x
+            ["r", "r", "r", "r", "w", "w", "w", "w", "w", "w"], # |
+            ["w", "w", "w", "w", "w", "w", "w", "w", "w", "w"], # |
+            ["w", "w", "w", "w", "w", "w", "w", "w", "w", "w"], # |
+            ["w", "w", "w", "w", "w", "w", "w", "w", "w", "w"], # y
+            ["w", "w", "w", "w", "w", "w", "w", "w", "w", "w"], #
+            ["w", "w", "w", "w", "w", "w", "w", "w", "w", "w"], #
+            ["w", "b", "w", "w", "w", "w", "w", "b", "b", "b"], #
+            ["w", "b", "b", "b", "w", "w", "w", "b", "b", "b"], #
+            ["w", "w", "w", "w", "w", "w", "w", "b", "b", "b"], #
+        ])
+        self.classification = [["w" for j in range(10)] for i in range(10)]
+        self.classified = False
+
+    def experience(self, Network):
+        """
+        Computes the actions of a network on the problem
+        This is the main function of a problem
+        """
+        print("Warning  : experience was not fully configured")
+        self.Network = Network
+        while not self.end_condition():
+            self.action()
+        self.score_update()
+        score = self.score
+        self.reset()
+        return(score)
+
+    def end_condition(self):
+        """
+        True if the Problem is finished for whatever reason
+        False if it goes on
+        """
+        return(self.classified)
+
+    def state(self):
+        """
+        Returns the state of the problem
+        """
+        print("Warning  : state was not fully configured")
+        return(np.array([1]))
+
+    # Other state related functions should be there
+
+    def score_update(self):
+        """
+        Updates the score of the problem at the moment
+        """
+        # score should always be > 0
+        print("Warning score_real_time was not fully configured")
+        self.score = 0
+
+    def action(self):
+        """
+        Computes the consequences of the input_data on the problem
+        """
+        print("Warning  : action was not fully configured")
+        slef.classification = [[Network.process(np.array(x, y))
+                               for x in range(10)]
+                               for y in range(10)]
+        self.classified = True
+
+    # Other action related functions should be put here
+
+    def display(self):
+        """
+        Shows how things are doing
+        """
+        for y, row in enumerate(self.plane):
+            for x, color in enumerate(row):
+                plt.scatter(x, y, color=color, marker="x")
+        for y, row in enumerate(self.classification):
+            for x, color in enumerate(row):
+                plt.scatter(x, y, color=color, marker="$O$")
+        plt.show()
+
+    # Other display functions should be put here
+
+    def __name__(self):
+        return("An_Unnamed_Problem")
+
+    def reset(self):
+        """
+        Resets the problem
+        """
+        print("Maybe some HUGE PROBLEM is coming at you bro")
+        self.__init__()
+
+
 def main_test_gradient(
     nb_herds = 1,
     nb_generations = 20,

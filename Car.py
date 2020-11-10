@@ -179,7 +179,7 @@ class Car(Problem):
         Δd = 0.01, # The length precision of the physics engine
         Δt = 0.01, # The time precision of the physics engine
         dmax = 4, # The distance at which the car can see
-        turning_circle = 1, # quality of the car
+        turning_circle = 20, # quality of the car
         engine_quality = 20,
         circuit = None,
     ):
@@ -377,17 +377,17 @@ class Car(Problem):
 
 
 def main():
-    P = Car(False, 8)
+    P = Car(False, 4)
     TB = TestBench(
         P,
         1, # nb_herds
-        20, # nb_generations
+        30, # nb_generations
         9, # nb_add_neurons
         3, # period
-        100, # size
+        500, # size
         0.02, # mutation_coefficient
         0.001, # mutation_amplitude
-        5, # nb_tests
+        10, # nb_tests
         slices=[5, 4],
         regions=[
             [False, False, False, False],

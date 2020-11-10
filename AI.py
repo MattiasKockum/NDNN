@@ -24,7 +24,7 @@ def date():
     return("_{}_{}_{}_{}_{}".format(t[0], t[1], t[2], t[3], t[4]))
 
 def sigmoid(x):
-	return(2*((1/(1+np.e**(-x)))-0.5))
+	return(1/(1+np.e**(-x)))
 
 def extend(array, n=1):
     r = []
@@ -446,8 +446,14 @@ class Network(object):
         Hopefully I can parallelize the matrix multiplication
         """
         self.values = sigmoid(
-            np.matmul(self.weights, self.values)
-            + self.bias)
+            np.matmul(self.weights, self.values + self.bias)
+        )
+        # Old way of doing, I'm testing this new one on top
+        # I order to be able to make "dead connections"
+        #self.values = sigmoid(
+        #    np.matmul(self.weights, self.values)
+        #    + self.bias
+        #)
 
     def add_neurons(self, add_neurons=1):
         """
