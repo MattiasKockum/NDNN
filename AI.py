@@ -24,7 +24,7 @@ def date():
     return("_{}_{}_{}_{}_{}".format(t[0], t[1], t[2], t[3], t[4]))
 
 def sigmoid(x):
-	return(1/(1+np.e**(-x)))
+	return(-1 + 2/(1+np.e**(-x)))
 
 def extend(array, n=1):
     r = []
