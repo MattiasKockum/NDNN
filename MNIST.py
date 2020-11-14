@@ -19,6 +19,10 @@ import mnist as mn
 TEST_IMAGES, TEST_LABELS = mn.test_images(), mn.test_labels()
 LEN = len(TEST_IMAGES)
 SIZE = len(TEST_IMAGES[0])
+SQUISHED_IMAGES = np.zeros((LEN), dtype='object')
+for i in range(LEN):
+    SQUISHED_IMAGES[i] = np.resize(TEST_IMAGES[i], (SIZE**2, ))
+    SQUISHED_IMAGES[i] = SQUISHED_IMAGES[i]/max(SQUISHED_IMAGES[i])
 
 class MNIST(Problem):
     """
@@ -33,6 +37,7 @@ class MNIST(Problem):
         self.output = np.zeros((10))
         index = np.random.randint(0, LEN)
         self.image = TEST_IMAGES[index]
+        self.squished_image = SQUISHED_IMAGES[index]
         self.number = TEST_LABELS[index]
 
     def experience(self, Network):
@@ -60,10 +65,7 @@ class MNIST(Problem):
         """
         Returns the state of the problem
         """
-        squished_image = self.image
-        squished_image.resize((SIZE**2, ))
-        squished_image = squished_image/max(squished_image)
-        return(squished_image)
+        return(self.squished_image)
 
     # Other state related functions should be there
 
@@ -106,16 +108,15 @@ class MNIST(Problem):
         self.__init__(self.do_display)
 
 
-
 def main():
     nb_sensors = 28*28
     nb_actors = 10
     nb_add_neurons = 30
     period = 3
-    size = 10
+    size = 5
     mutatation_coefficient = 0.1
     mutation_amplitude = 0.001
-    nb_tests = 10
+    nb_tests = 1
     do_display = False
     H = Herd(nb_sensors, nb_actors, nb_add_neurons, period, size,
              mutatation_coefficient, mutation_amplitude, nb_tests, do_display,

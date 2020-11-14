@@ -291,7 +291,7 @@ class Herd(object):
             # Saves one Network and the score evolution
             self.members[0].save(problem.__name__() + "_Network" + self.date,
                                  "w", False)
-            score_file = open("score" + self.date, "a")
+            score_file = open(problem.__name__() + "score" + self.date, "a")
             score_file.write(
                 "generation n° {} : {:<21}\n".format(generation, str(score)))
             score_file.close()
