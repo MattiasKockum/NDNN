@@ -388,7 +388,7 @@ def main():
         0.02, # mutation_coefficient
         0.001, # mutation_amplitude
         10, # nb_tests
-        slices=[5, 4],
+        slices=[P.nb_sensors, 5, 4, P.nb_actors],
         regions=[
             [False, False, False, False],
             [True, False, False, False],

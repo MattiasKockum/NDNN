@@ -19,12 +19,18 @@ import time
 import matplotlib.pyplot as plt
 
 
-def date():
-    t = time.localtime()
-    return("_{}_{}_{}_{}_{}".format(t[0], t[1], t[2], t[3], t[4]))
+# activation functions
 
 def sigmoid(x):
 	return(-1 + 2/(1+np.e**(-x)))
+
+def ramp(x):
+    return((x<-1)*(-x-1) + x + (x>1)*(-x+1))
+
+def threshold(x):
+    return(1*(x>0) + 0 -1*(x<0))
+
+# parallelization functions
 
 def extend(array, n=1):
     r = []
@@ -68,6 +74,8 @@ def pooled_evolution(X):
     """
     r = X[0].evolve(X[1], X[2])
     return(r, (X[0].members[0], r))
+
+# Save function
 
 def load_network(file_name):
     """
@@ -122,6 +130,18 @@ def load_score(file_name):
         r.append(float(line[line.index(":") + 2:-2]))
     return(r)
 
+# Misc functions
+
+def date():
+    t = time.localtime()
+    return("_{}_{}_{}_{}_{}".format(t[0], t[1], t[2], t[3], t[4]))
+
+def under_diag(size):
+    matrix = np.zeros((size, size))
+    for i in range(size-1):
+        matrix[i+1][i] = 1
+    return(matrix)
+
 
 class Problem(object):
     """
@@ -140,11 +160,11 @@ class Problem(object):
         """
         print("Warning  : experience was not fully configured")
         while not self.end_condition():
-            self.action(*Network.process(self.state()))
-        score = self.score_real_time()
+            self.action(Network)
+        self.score_update()
+        score = self.score
         self.reset()
-        # score should always be > 0
-        return(score*(score>0))
+        return(score)
 
     def end_condition(self):
         """
@@ -167,13 +187,17 @@ class Problem(object):
         """
         Updates the score of the problem at the moment
         """
-        print("Warning score_real_time was not fully configured")
+        print("Warning score_update was not fully configured")
+        score = 0
+        self.score = score*(score>0)
+        # score should always be > 0
 
-    def action(self, input_data):
+    def action(self, Network):
         """
         Computes the consequences of the input_data on the problem
         """
         print("Warning  : action was not fully configured")
+        output = Network.process(self.state())
         pass
 
     # Other action related functions should be put here
@@ -210,7 +234,8 @@ class Herd(object):
         size = 5,
         mutation_coefficent = 0.1,
         mutation_amplitude = 0.001,
-        nb_tests = 2,
+        nb_tests = 1,
+        do_display = False,
         **kwargs
     ):
         self.nb_sensors = nb_sensors
@@ -221,6 +246,7 @@ class Herd(object):
         self.mutation_coefficent = mutation_coefficent
         self.mutation_amplitude = mutation_amplitude
         self.nb_tests = nb_tests
+        self.do_display = do_display
         self.members = [
             Network(nb_sensors, nb_actors, nb_add_neurons, period, **kwargs)
             for i in range(size)
@@ -239,7 +265,7 @@ class Herd(object):
             self.Problem = Problem()
         else:
             self.Problem = problem
-        score_file = open("score" + self.date, "w")
+        score_file = open(problem.__name__() + "_score" + self.date, "w")
         score_file.write(
             "score\n"
             + "number of added neurons : {}\n".format(self.nb_add_neurons)
@@ -252,6 +278,8 @@ class Herd(object):
         )
         score_file.close()
         self.Problem_pool = extend([self.Problem], self.size*self.nb_tests)
+        if self.do_display:
+            self.Problem_pool[0].do_display = True
         for generation in range(nb_generations):
             # Evaluation of performances
             proba_reproduction = self.performances()
@@ -261,7 +289,8 @@ class Herd(object):
             score = sum(self.score)/self.size
             self.array_scores.append(score)
             # Saves one Network and the score evolution
-            self.members[0].save(problem.__name__() + self.date, "w", False)
+            self.members[0].save(problem.__name__() + "_Network" + self.date,
+                                 "w", False)
             score_file = open("score" + self.date, "a")
             score_file.write(
                 "generation n° {} : {:<21}\n".format(generation, str(score)))
@@ -285,10 +314,9 @@ class Herd(object):
         )
         pool.close()
         # Put this code if you want to observe evolution, especially in the
-        # Gradient Descent Problem because somehow the use of the mp.Pool().map
-        # function seems to not make it work
-        #self.Problem.experience(self.members_pool[0])
-        #self.members_pool[0].reset()
+        # Gradient Descent Problem because parallelization makes it not work
+        self.Problem.experience(self.members_pool[0])
+        self.members_pool[0].reset()
         self.score = mean(member_s_points, self.nb_tests)
         if list(self.score) == list(np.zeros(self.size)):
             # if evey Network has a score of zero they reproduce with equal
@@ -320,7 +348,8 @@ class Herd(object):
         """
         Modifies the scores to make them useable in probability
         """
-        return(score/sum(score))
+        # I put the np.array in case the score isn't an array
+        return(np.array(score)/sum(score))
 
     def scale(self, reproductive_members):
         """
@@ -367,18 +396,20 @@ class Network(object):
         nb_actors = 0, # one sensor and no actor
         nb_add_neurons = 0,
         period = 1,
+        function = ramp,
         **kwargs # "weights", "bias", "slices", "regions"
     ):
         self.nb_sensors = nb_sensors
         self.nb_actors = nb_actors
         self.nb_add_neurons = nb_add_neurons
         self.period = period
+        self.function = function
         self.nb_neurons = nb_add_neurons + nb_actors + nb_sensors
         self.values = np.zeros((self.nb_neurons))
         if ("slices" in kwargs and "regions" in kwargs):
             # slices = list of size of groups of deep neurons
             # regions = array of 0 and 1 if the group shall exist
-            self.slices = [nb_sensors] + kwargs["slices"] + [nb_actors]
+            self.slices = kwargs["slices"]
             self.regions = kwargs["regions"]
             self.squared()
         elif "weights" not in kwargs and "bias" not in kwargs:
@@ -445,15 +476,12 @@ class Network(object):
         We iterate once and update network state
         Hopefully I can parallelize the matrix multiplication
         """
-        self.values = sigmoid(
-            np.matmul(self.weights, self.values + self.bias)
-        )
+        self.values = self.function(
+            np.matmul(self.weights, self.values + self.bias))
         # Old way of doing, I'm testing this new one on top
         # I order to be able to make "dead connections"
-        #self.values = sigmoid(
-        #    np.matmul(self.weights, self.values)
-        #    + self.bias
-        #)
+        #self.values = self.function(
+        #   np.matmul(self.weights, self.values) + self.bias)
 
     def add_neurons(self, add_neurons=1):
         """
@@ -708,6 +736,7 @@ class TestBench(object):
         self.display_table(test_values)
         # Starts learning !
         # I should be able to parallelize it but I can't make it work for now
+        # Error raised about mp children
         #pool = mp.Pool()
         #Herd_Pool = [Herd(*array_inputs[i], **self.kwargs)
                      #for i in range(len(values))]
