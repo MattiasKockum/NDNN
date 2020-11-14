@@ -113,10 +113,10 @@ def main():
     nb_actors = 10
     nb_add_neurons = 30
     period = 3
-    size = 5
+    size = 50
     mutatation_coefficient = 0.1
     mutation_amplitude = 0.001
-    nb_tests = 1
+    nb_tests = 10
     do_display = False
     H = Herd(nb_sensors, nb_actors, nb_add_neurons, period, size,
              mutatation_coefficient, mutation_amplitude, nb_tests, do_display,
@@ -126,7 +126,7 @@ def main():
     P.do_display = True
     N = H.members[0]
     for i in range(10):
-        print(C.experience(N))
+        print(P.experience(N))
 
 if __name__ == "__main__":
     main()
