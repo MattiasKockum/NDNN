@@ -119,6 +119,9 @@ def load_Herd(file_name, size = 100, mc = 0.1, ma = 0.001, nb_tests = 2):
     return(H)
 
 def load_score(file_name):
+    """
+    TO BE REWORKED
+    """
     f = open(file_name, "r")
     r = []
     data = []
@@ -253,6 +256,8 @@ class Herd(object):
         ]
         self.array_scores = []
         self.date = date()
+        self.max_score = 0
+        self.max_score_index = 0
 
     def evolve(self, problem, nb_generations=1):
         """
@@ -286,14 +291,16 @@ class Herd(object):
             # Reproduction (with mutation) of Networks
             self.reproduce(proba_reproduction)
             # Saves the scores
-            score = sum(self.score)/self.size
-            self.array_scores.append(score)
+            self.max_score = max(self.score)
+            self.max_score_index = self.score.index(self.max_score)
+            self.array_scores.append(self.max_score)
             # Saves one Network and the score evolution
-            self.members[0].save(problem.__name__() + "_Network" + self.date,
-                                 "w", False)
+            self.members[self.max_score_index].save(
+                problem.__name__() + "_Network" + self.date, "w", False)
             score_file = open(problem.__name__() + "_score" + self.date, "a")
             score_file.write(
-                "generation n° {} : {:<21}\n".format(generation, str(score)))
+                "generation n° {} : {} \n".format(
+                    generation, str(self.max_score)))
             score_file.close()
         score_file = open(problem.__name__() + "_score" + self.date, "a")
         score_file.write("End\n")
@@ -349,7 +356,9 @@ class Herd(object):
         Modifies the scores to make them useable in probability
         """
         # I put the np.array in case the score isn't an array
-        return(np.array(score)/sum(score))
+        score = np.array(score)
+        score = score - max(score)
+        return(score/sum(score))
 
     def scale(self, reproductive_members):
         """

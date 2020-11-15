@@ -116,13 +116,13 @@ def main():
     size = 50
     mutatation_coefficient = 0.1
     mutation_amplitude = 0.001
-    nb_tests = 10
+    nb_tests = 100
     do_display = False
     H = Herd(nb_sensors, nb_actors, nb_add_neurons, period, size,
              mutatation_coefficient, mutation_amplitude, nb_tests, do_display,
              slices = [28*28, 15, 15, 10], regions=under_diag(4))
     P = MNIST(False)
-    H.evolve(P, 20)
+    H.evolve(P, 200)
     P.do_display = True
     N = H.members[0]
     for i in range(10):
