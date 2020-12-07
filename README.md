@@ -68,4 +68,16 @@ P = Car(True, 8)
 P.experience(N)
 ```
 
+Now if you gave a Network that works at last perfectly fine you can compile it using the compile command
+
+```python
+N.compile("My_executable", True, ramp)
+```
+
+And use it with streams of input and output
+
+```zsh
+./My_executable /dev/stdin /dev/stdout
+```
+
 Have a nice learning session!
