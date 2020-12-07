@@ -15,7 +15,9 @@ import numpy as np
 import multiprocessing as mp
 import copy
 import time
-# Use full for easy data visualisation
+# Useful for compiling Network in machine code
+import os
+# Useful for easy data visualisation
 import matplotlib.pyplot as plt
 
 
@@ -25,7 +27,7 @@ def sigmoid(x):
 	return(-1 + 2/(1+np.e**(-x)))
 
 def ramp(x):
-    return((x<-1)*(-x-1) + x + (x>1)*(-x+1))
+    return(x*(x>0))
 
 def threshold(x):
     return(1*(x>0) + 0 -1*(x<0))
@@ -575,6 +577,167 @@ class Network(object):
             f.write(str(i) + "\n")
         f.close()
 
+    def compile(self, file_name = None, add_date = False, function = "ramp"):
+        """
+        Saves a compiled and usable c version of the Network,
+        this is intended to be the final thing to do before using the Network
+        in its application
+        """
+        if file_name == None:
+            file_name = "Exe"
+        c_code_name = file_name + date() * add_date
+        string_values = "{"
+        for i in self.values:
+            string_values += str(i) + ", "
+        string_values = string_values[:-2]
+        string_values += "}"
+        string_bias = "{"
+        for i in self.bias:
+            string_bias += str(i) + ", "
+        string_bias = string_bias[:-2]
+        string_bias += "}"
+        string_weights = "{"
+        for i in self.weights:
+            string_weights += "{"
+            for j in i:
+                    string_weights += str(j) + ", "
+            string_weights = string_weights[:-2]
+            string_weights+="}, "
+        string_weights = string_weights[:-2]
+        string_weights += "}"
+
+        string_format_input = (self.nb_sensors*"%lf ")[:-1]
+        string_input = ""
+        for i in range(self.nb_sensors):
+            string_input += "&values2[{}], ".format(i)
+        string_input = string_input[:-2]
+        string_format_output = (self.nb_actors*"%lf ")[:-1]
+        string_output = ""
+        for i in range(self.nb_actors):
+            string_output += "N.values[NB_SENSORS + NB_ACTORS + {}], ".format(i)
+        string_output = string_output[:-2]
+
+        c_code = (
+            """#include <stdio.h> //\n"""
+            + """#include <stdlib.h> //\n"""
+            + """#include <math.h>\n"""
+            + """\n"""
+            + """#define NB_SENSORS {}\n""".format(self.nb_sensors)
+            + """#define NB_ACTORS {}\n""".format(self.nb_actors)
+            + """#define NB_ADD_NEURONS {}\n""".format(self.nb_add_neurons)
+            + """#define PERIOD {}\n""".format(self.period)
+            + """#define NB_TOTAL_NEURONS NB_SENSORS + NB_ADD_NEURONS"""
+                + """ + NB_ACTORS\n"""
+            + """\n"""
+            + """typedef struct Network\n"""
+            + """{\n"""
+            + """    double values[NB_TOTAL_NEURONS];\n"""
+            + """    double bias[NB_TOTAL_NEURONS];\n"""
+            + """    double weights[NB_TOTAL_NEURONS][NB_TOTAL_NEURONS];\n"""
+            + """}\n"""
+            + """Network;\n"""
+            + """\n"""
+            + """double sigmoid(double x)\n"""
+            + """{\n"""
+            + """    double r;\n"""
+            + """    r = -1 + (2/(1+exp(-x)));\n"""
+            + """    return r;\n"""
+            + """}\n"""
+            + """\n"""
+            + """double ramp(double x)\n"""
+            + """{\n"""
+            + """    if (x>0)\n"""
+            + """    {\n"""
+            + """        return x;\n"""
+            + """    }\n"""
+            + """    else\n"""
+            + """    {\n"""
+            + """        return 0;\n"""
+            + """    }\n"""
+            + """}\n"""
+            + """\n"""
+            + """void iteration(Network *N)\n"""
+            + """{\n"""
+            + """    double values2[NB_TOTAL_NEURONS];\n"""
+            + """    int i;\n"""
+            + """    int j;\n"""
+            + """    for (i=0; i<NB_TOTAL_NEURONS; i++)\n"""
+            + """    {\n"""
+            + """        values2[i] = 0;\n"""
+            + """    }\n"""
+            + """    for (i=0; i<NB_TOTAL_NEURONS; i++)\n"""
+            + """    {\n"""
+            + """        for (j=0; j<NB_TOTAL_NEURONS; j++)\n"""
+            + """        {\n"""
+            + """            values2[j]+=N->weights[j][i]*(N->bias[i]+"""
+                + """N->values[i]);\n"""
+            + """        }\n"""
+            + """    }\n"""
+            + """    for (i=0; i<NB_TOTAL_NEURONS; i++)\n"""
+            + """    {\n"""
+            + """        N->values[i] = {}(values2[i]);\n""".format(
+                self.function.__name__)
+            + """    }\n"""
+            + """}\n"""
+            + """\n"""
+            + """int main(int argc, char * argv[])\n"""
+            + """{\n"""
+            + """    if (argc != 3)\n"""
+            + """    {\n"""
+            + """        printf("Use format : input_file output_file\\n");\n"""
+            + """        return 1;\n"""
+            + """    }\n"""
+            + """    Network N = {\n"""
+            + """    {},\n""".format(string_values)
+            + """    {},\n""".format(string_bias)
+            + """    {},\n""".format(string_weights)
+            + """    };\n"""
+            + """    double values2[NB_TOTAL_NEURONS];\n"""
+            + """    FILE *input_file;\n"""
+            + """    input_file = fopen(argv[1], "r");\n"""
+            + """    if (input_file == NULL)\n"""
+            + """    {\n"""
+            + """        perror("input_file opening");\n"""
+            + """        return 1;\n"""
+            + """    }\n"""
+            + """    FILE *output_file;\n"""
+            + """    output_file = fopen(argv[2], "w");\n"""
+            + """\n"""
+            + """    if (output_file == NULL)\n"""
+            + """    {\n"""
+            + """        perror("output_file opening");\n"""
+            + """        fclose(input_file);\n"""
+            + """        return 1;\n"""
+            + """    }\n"""
+            + """    int i;\n"""
+            + """    while (fscanf(input_file, "{}\\n", {}))\n""".format(
+                string_format_input, string_input)
+            + """    {\n"""
+            + """        // input\n"""
+            + """        for (i=0; i<NB_SENSORS; i++)\n"""
+            + """        {\n"""
+            + """            N.values[i] += values2[i];\n"""
+            + """        }\n"""
+            + """        // process\n"""
+            + """        for (i=0; i<PERIOD; i++)\n"""
+            + """        {\n"""
+            + """            iteration(&N);\n"""
+            + """        }\n"""
+            + """        // output\n"""
+            + """        fprintf(output_file, "{}\\n", {});\n""".format(
+                string_format_output, string_output)
+            + """    }\n"""
+            + """    fclose(output_file);\n"""
+            + """    fclose(input_file);\n"""
+            + """    return 0;\n"""
+            + """}\n\n"""
+            )
+        f = open(c_code_name + ".c", "w")
+        f.write(c_code)
+        f.close()
+        command = "gcc -o {} {} -lm".format(c_code_name, c_code_name + ".c")
+        os.system(command)
+
     def reset(self):
         self.values = np.zeros(self.values.shape)
 
@@ -584,9 +747,10 @@ class Network(object):
                + "actors : {}\n".format(self.nb_actors)
                + "added neurons : {}\n".format(self.nb_add_neurons)
                + "period : {}\n".format(self.period)
-               + "weights :\n{}\n".format(self.weights)
+               + "values :\n{}\n".format(self.values)
                + "bias :\n{}\n".format(self.bias)
-               + "values :\n{}\n".format(self.values))
+               + "weights :\n{}\n".format(self.weights)
+             )
 
     def display(self):
         """
