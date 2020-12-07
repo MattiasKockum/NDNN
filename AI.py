@@ -577,7 +577,7 @@ class Network(object):
             f.write(str(i) + "\n")
         f.close()
 
-    def compile(self, file_name = None, add_date = False, function = "ramp"):
+    def compile(self, file_name = None, add_date = False):
         """
         Saves a compiled and usable c version of the Network,
         this is intended to be the final thing to do before using the Network

@@ -71,7 +71,7 @@ P.experience(N)
 Now if you gave a Network that works at last perfectly fine you can compile it using the compile command
 
 ```python
-N.compile("My_executable", True, ramp)
+N.compile("My_executable")
 ```
 
 And use it with streams of input and output
