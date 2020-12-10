@@ -52,7 +52,7 @@ def prob_reproduction(X):
     """
     A weird looking function for parallelization
     X[0] is a group of objects
-    X[1] is their respective probability of beig copied
+    X[1] is their respective probability of being copied
     X[2] = mutation_coefficent
     X[3] = mutation_amplitude
     returns the mutation of the chosen one
@@ -68,7 +68,9 @@ def evaluate(X):
     """
     np.random.seed()
     X[0].reset()
-    return(X[0].experience(X[1]))
+    return_value = X[0].experience(X[1])
+    X[1].reset()
+    return(return_value)
 
 def pooled_evolution(X):
     """
@@ -285,6 +287,8 @@ class Herd(object):
         )
         score_file.close()
         self.Problem_pool = extend([self.Problem], self.size*self.nb_tests)
+        for pb in self.Problem_pool:
+            pb.do_display = False
         if self.do_display:
             self.Problem_pool[0].do_display = True
         for generation in range(nb_generations):
@@ -324,8 +328,8 @@ class Herd(object):
         pool.close()
         # Put this code if you want to observe evolution, especially in the
         # Gradient Descent Problem because parallelization makes it not work
-        self.Problem.experience(self.members_pool[0])
-        self.members_pool[0].reset()
+        #self.Problem.experience(self.members_pool[0])
+        #self.members_pool[0].reset()
         self.score = mean(member_s_points, self.nb_tests)
         if list(self.score) == list(np.zeros(self.size)):
             # if evey Network has a score of zero they reproduce with equal
@@ -340,7 +344,7 @@ class Herd(object):
         parallelized
         """
         pool = mp.Pool()
-        self.members = (
+        new_members = (
             pool.map(
                 prob_reproduction,
                 [(
@@ -351,6 +355,7 @@ class Herd(object):
                 )]*self.size
             )
         )
+        self.members = new_members
         pool.close()
 
     def modif_score(self, score):
@@ -359,7 +364,7 @@ class Herd(object):
         """
         # I put the np.array in case the score isn't an array
         score = np.array(score)
-        score = score - max(score)
+        score = score - min(score)
         return(score/sum(score))
 
     def scale(self, reproductive_members):
@@ -797,7 +802,8 @@ class TestBench(object):
         mutation_coefficent = 0.0001,
         mutation_amplitude = 0.01,
         nb_tests = 2,
-        display_mode = None,
+        do_display_execution = False,
+        display_results_mode = None,
         **kwargs
     ):
         self.kwargs = kwargs
@@ -817,7 +823,8 @@ class TestBench(object):
         self.mutation_coefficent = mutation_coefficent
         self.mutation_amplitude = mutation_amplitude
         self.nb_tests = nb_tests
-        self.display_mode = display_mode
+        self.do_display_execution = do_display_execution
+        self.display_results_mode = display_results_mode
         self.values_simple = self.nb_herds*[1]
         self.values_nb_add_neurons = [0, 1, 2, 3, 4, 5, 6]
         self.values_period = [1, 2, 3, 4, 5, 6, 7]
@@ -827,7 +834,7 @@ class TestBench(object):
         self.values_nb_tests = [2, 4, 8, 16, 32, 64, 128, 256, 512]
         self.archives = []
 
-    def test(self, mode = 0, nb_generations = None, values = None):
+    def test(self, mode = "simple", nb_generations = None, values = None):
         if nb_generations == None:
             nb_generations = self.nb_generations
         base = [
@@ -838,7 +845,8 @@ class TestBench(object):
             self.size,
             self.mutation_coefficent,
             self.mutation_amplitude,
-            self.nb_tests
+            self.nb_tests,
+            self.do_display_execution
         ]
         if mode in [0, "simple"]:
             if values == None:
@@ -929,10 +937,10 @@ class TestBench(object):
             self.series.append(H.evolve(self.problem, nb_generations))
             self.archives.append([H.members[0], self.series])
         # display
-        if self.display_mode != None:
-            if self.display_mode in [0, "console"]:
+        if self.display_results_mode != None:
+            if self.display_results_mode in [0, "console"]:
                 self.display_console()
-            if self.display_mode in [1, "plot"]:
+            if self.display_results_mode in [1, "plot"]:
                 self.display_plot()
         # reset the self.series for if it is needed after
         self.series = []
