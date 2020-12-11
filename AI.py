@@ -331,10 +331,6 @@ class Herd(object):
         #self.Problem.experience(self.members_pool[0])
         #self.members_pool[0].reset()
         self.score = mean(member_s_points, self.nb_tests)
-        if list(self.score) == list(np.zeros(self.size)):
-            # if evey Network has a score of zero they reproduce with equal
-            # proability
-            self.score = np.ones(self.size)
         score_modif = self.modif_score(self.score)
         return(score_modif)
 
@@ -365,6 +361,10 @@ class Herd(object):
         # I put the np.array in case the score isn't an array
         score = np.array(score)
         score = score - min(score)
+        if list(score) == list(np.zeros(self.size)):
+            # if evey Network has a score of zero they reproduce with equal
+            # proability
+            score = np.ones(self.size)
         return(score/sum(score))
 
     def scale(self, reproductive_members):
