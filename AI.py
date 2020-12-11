@@ -916,7 +916,6 @@ class TestBench(object):
                        for i in range(len(values))])
         test_values = np.concatenate((array_inputs[:,2:-1], test_colors),
                                      axis = 1)
-        print(test_values)
         self.display_table(test_values)
         # Starts learning !
         for i in range(len(values)):
@@ -933,7 +932,6 @@ class TestBench(object):
         self.series = []
 
     def display_table(self, Variables_values):
-        print(self.mutation_coefficent)
         Variables_name_1 = np.array(["nb of added", "",
                           "herd's", "mutation",
                           "mutation", "nb of", ""])
