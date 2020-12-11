@@ -1,0 +1,2 @@
+rm *score*
+rm *Network*
