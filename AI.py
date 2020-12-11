@@ -154,7 +154,7 @@ class Problem(object):
     """
     The frame of any "live" problem
     """
-    def __init__(self):
+    def __init__(self, do_display = False):
         self.nb_sensors = 1
         self.nb_actors = 1
         self.score = 0
@@ -582,15 +582,15 @@ class Network(object):
             f.write(str(i) + "\n")
         f.close()
 
-    def compile(self, file_name = None, add_date = False):
+    def compile(self, c_code_name = None, add_date = False):
         """
         Saves a compiled and usable c version of the Network,
         this is intended to be the final thing to do before using the Network
         in its application
         """
-        if file_name == None:
-            file_name = "Exe"
-        c_code_name = file_name + date() * add_date
+        if c_code_name == None:
+            c_code_name = "Exe"
+        c_code_name += date() * add_date
         string_values = "{"
         for i in self.values:
             string_values += str(i) + ", "
@@ -740,8 +740,8 @@ class Network(object):
         f = open(c_code_name + ".c", "w")
         f.write(c_code)
         f.close()
-        command = "gcc -o {} {} -lm".format(c_code_name, c_code_name + ".c")
-        os.system(command)
+        os.system("gcc -o {} {} -lm".format(c_code_name, c_code_name + ".c"))
+        os.system("rm {}".format(c_code_name + ".c"))
 
     def reset(self):
         self.values = np.zeros(self.values.shape)
@@ -808,7 +808,7 @@ class TestBench(object):
     ):
         self.kwargs = kwargs
         if "slices" in kwargs:
-            self.nb_add_neurons = sum(kwargs["slices"])
+            self.nb_add_neurons = sum(kwargs["slices"][1:-1])
         else:
             self.nb_add_neurons = nb_add_neurons
         self.series = []
@@ -855,7 +855,7 @@ class TestBench(object):
                 [base for i in range(len(values))],
                 dtype = object
             )
-        elif mode in [1, "nb_neurons"]:
+        elif mode in [1, "nb_add_neurons"]:
             if values == None:
                 values = self.values_nb_add_neurons
             array_inputs = np.array(
@@ -911,27 +911,14 @@ class TestBench(object):
                 dtype = object
             )
             array_inputs = values
+        # Pre-display
         test_colors = np.array([[self.colors[i%len(self.colors)]]
                        for i in range(len(values))])
-        test_values = np.concatenate((array_inputs, test_colors), axis = 1)
+        test_values = np.concatenate((array_inputs[:,2:-1], test_colors),
+                                     axis = 1)
+        print(test_values)
         self.display_table(test_values)
         # Starts learning !
-        # I should be able to parallelize it but I can't make it work for now
-        # Error raised about mp children
-        #pool = mp.Pool()
-        #Herd_Pool = [Herd(*array_inputs[i], **self.kwargs)
-                     #for i in range(len(values))]
-        #self.series, self.archives = pool.map(
-            #pooled_evolution,
-            #[(H, P, G)
-                #for (H, P, G) in zip(
-                    #Herd_Pool,
-                    #[self.problem]*len(values),
-                    #[nb_generations]*len(values)
-                #)
-            #]
-        #)
-        #pool.close()
         for i in range(len(values)):
             H = Herd(*array_inputs[i], **self.kwargs)
             self.series.append(H.evolve(self.problem, nb_generations))
@@ -946,14 +933,14 @@ class TestBench(object):
         self.series = []
 
     def display_table(self, Variables_values):
-        Variables_name_1 = np.array(["nb of", "nb of",
-                          "nb of added", "",
+        print(self.mutation_coefficent)
+        Variables_name_1 = np.array(["nb of added", "",
                           "herd's", "mutation",
                           "mutation", "nb of", ""])
-        Variables_name_2 = np.array(["sensors", "actors", "neurons", "period",
+        Variables_name_2 = np.array(["neurons", "period",
                                      "size", "coefficent", "amplitude",
                                      "tests", "color"])
-        form ="{:<8} {:<7} {:<12} {:<7} {:<7} {:<11} {:<11} {:<7} {:<0}"
+        form ="{:<12} {:<7} {:<7} {:<11} {:<11} {:<7} {:<0}"
         for i in [Variables_name_1, Variables_name_2, *Variables_values]:
             print(form.format(*i))
 

@@ -111,22 +111,34 @@ class MNIST(Problem):
 def main():
     nb_sensors = 28*28
     nb_actors = 10
-    nb_add_neurons = 32
+    nb_add_neurons = 16 + 16
     period = 3
     size = 100
-    mutatation_coefficient = 0.1
-    mutation_amplitude = 0.001
+    mutation_coefficient = 1
+    mutation_amplitude = 0.01
     nb_tests = 100
     do_display = False
-    H = Herd(nb_sensors, nb_actors, nb_add_neurons, period, size,
-             mutatation_coefficient, mutation_amplitude, nb_tests, do_display,
-             slices = [28*28, 16, 16, 10], regions=under_diag(4))
+    nb_herds = 3
+    nb_generations = 1000
+    do_display_execution = False,
+    display_results_mode = "console"
     P = MNIST(False)
-    H.evolve(P, 1000)
-    P.do_display = True
-    N = H.members[0]
-    for i in range(10):
-        print(P.experience(N))
+    TB = TestBench(
+        P, # Problem
+        nb_herds,
+        nb_generations,
+        nb_add_neurons,
+        period,
+        size,
+        mutation_coefficient,
+        mutation_amplitude,
+        nb_tests,
+        do_display_execution,
+        display_results_mode,
+        slices = [28*28, 16, 16, 10],
+        regions = under_diag(4)
+    )
+    TB.test("simple")
 
 if __name__ == "__main__":
     main()
