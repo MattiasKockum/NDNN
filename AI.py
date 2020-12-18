@@ -29,6 +29,9 @@ def sigmoid(x):
 def ramp(x):
     return(x*(x>0))
 
+def segments(x):
+    return((-1-x)*(x<-1) + x + (1-x)*(x>1))
+
 def threshold(x):
     return(1*(x>0) + 0 -1*(x<0))
 
@@ -68,8 +71,8 @@ def evaluate(X):
     """
     np.random.seed()
     X[0].reset()
-    return_value = X[0].experience(X[1])
     X[1].reset()
+    return_value = X[0].experience(X[1])
     return(return_value)
 
 def pooled_evolution(X):
@@ -412,7 +415,8 @@ class Network(object):
         nb_actors = 0, # one sensor and no actor
         nb_add_neurons = 0,
         period = 1,
-        function = ramp,
+        function = segments,
+        reset_after_process = True,
         **kwargs # "weights", "bias", "slices", "regions"
     ):
         self.nb_sensors = nb_sensors
@@ -420,6 +424,7 @@ class Network(object):
         self.nb_add_neurons = nb_add_neurons
         self.period = period
         self.function = function
+        self.reset_after_process = reset_after_process
         self.nb_neurons = nb_add_neurons + nb_actors + nb_sensors
         self.values = np.zeros((self.nb_neurons))
         if ("slices" in kwargs and "regions" in kwargs):
@@ -479,7 +484,10 @@ class Network(object):
         self.input(input_data)
         for i in range(nb_iterations):
             self.iteration()
-        return(self.output())
+        output = self.output()
+        if self.reset_after_process:
+            self.reset()
+        return(output)
 
     def input(self, values_inputs):
         self.values[:self.nb_sensors] += values_inputs
@@ -659,6 +667,19 @@ class Network(object):
             + """    {\n"""
             + """        return 0;\n"""
             + """    }\n"""
+            + """}\n"""
+            + """\n"""
+            + """double segments(double x)\n"""
+            + """{\n"""
+            + """   if (x>1)\n"""
+            + """    {\n"""
+            + """        return 1;\n"""
+            + """    }\n"""
+            + """   if (x<-1)\n"""
+            + """    {\n"""
+            + """        return -1;\n"""
+            + """    }\n"""
+            + """ return x;\n"""
             + """}\n"""
             + """\n"""
             + """void iteration(Network *N)\n"""

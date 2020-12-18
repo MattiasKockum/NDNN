@@ -113,13 +113,13 @@ def main():
     nb_actors = 10
     nb_add_neurons = 16 + 16
     period = 3
-    size = 100
+    size = 10
     mutation_coefficient = 1
     mutation_amplitude = 0.01
-    nb_tests = 100
+    nb_tests = 10
     do_display = False
-    nb_herds = 3
-    nb_generations = 1000
+    nb_herds = 1
+    nb_generations = 10
     do_display_execution = False,
     display_results_mode = "console"
     P = MNIST(False)
@@ -138,7 +138,10 @@ def main():
         slices = [28*28, 16, 16, 10],
         regions = under_diag(4)
     )
-    TB.test("simple")
+    #TB.test("simple")
+    H = Herd(nb_sensors, nb_actors, nb_add_neurons, period, size,
+             mutation_coefficient, mutation_amplitude, nb_tests, do_display)
+    H.evolve(P, nb_generations)
 
 if __name__ == "__main__":
     main()
