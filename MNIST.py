@@ -113,34 +113,23 @@ def main():
     nb_actors = 10
     nb_add_neurons = 16 + 16
     period = 3
-    size = 10
+    function = segments
+    reset_after_process = True
+    size = 100
     mutation_coefficient = 1
     mutation_amplitude = 0.01
-    nb_tests = 10
+    nb_tests = 100
     do_display = False
     nb_herds = 1
-    nb_generations = 10
+    nb_generations = 100
     do_display_execution = False,
     display_results_mode = "console"
+    slices = [28*28, 16, 16, 10]
+    regions = under_diag(4)
     P = MNIST(False)
-    TB = TestBench(
-        P, # Problem
-        nb_herds,
-        nb_generations,
-        nb_add_neurons,
-        period,
-        size,
-        mutation_coefficient,
-        mutation_amplitude,
-        nb_tests,
-        do_display_execution,
-        display_results_mode,
-        slices = [28*28, 16, 16, 10],
-        regions = under_diag(4)
-    )
-    #TB.test("simple")
-    H = Herd(nb_sensors, nb_actors, nb_add_neurons, period, size,
-             mutation_coefficient, mutation_amplitude, nb_tests, do_display)
+    H = Herd(nb_sensors, nb_actors, nb_add_neurons, period, function,
+             reset_after_process, size, mutation_coefficient,
+             mutation_amplitude, nb_tests, do_display)
     H.evolve(P, nb_generations)
 
 if __name__ == "__main__":

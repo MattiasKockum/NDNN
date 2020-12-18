@@ -241,6 +241,8 @@ class Herd(object):
         nb_actors = 1,
         nb_add_neurons = 0,
         period = 1,
+        function = segments,
+        reset_after_process = True,
         size = 5,
         mutation_coefficent = 0.1,
         mutation_amplitude = 0.001,
@@ -258,7 +260,8 @@ class Herd(object):
         self.nb_tests = nb_tests
         self.do_display = do_display
         self.members = [
-            Network(nb_sensors, nb_actors, nb_add_neurons, period, **kwargs)
+            Network(nb_sensors, nb_actors, nb_add_neurons, period, function,
+                    reset_after_process, **kwargs)
             for i in range(size)
         ]
         self.array_scores = []
@@ -819,6 +822,8 @@ class TestBench(object):
         nb_generations = 20,
         nb_add_neurons = 9,
         period = 1,
+        function = segments,
+        reset_after_process = True,
         size = 100,
         mutation_coefficent = 0.0001,
         mutation_amplitude = 0.01,
@@ -863,6 +868,8 @@ class TestBench(object):
             self.nb_actors,
             self.nb_add_neurons,
             self.period,
+            function,
+            reset_after_process,
             self.size,
             self.mutation_coefficent,
             self.mutation_amplitude,
@@ -899,7 +906,7 @@ class TestBench(object):
                 [base for i in range(len(values))],
                 dtype = object
             )
-            array_inputs[:,4] = values
+            array_inputs[:,6] = values
         elif mode in [4, "coefficient_mutation"]:
             if values == None:
                 values = self.values_mutation_coefficients
@@ -907,7 +914,7 @@ class TestBench(object):
                 [base for i in range(len(values))],
                 dtype = object
             )
-            array_inputs[:,5] = values
+            array_inputs[:,7] = values
         elif mode in [5, "coefficient_amplitude"]:
             if values == None:
                 values = self.values_mutation_amplitude
@@ -915,7 +922,7 @@ class TestBench(object):
                 [base for i in range(len(values))],
                 dtype = object
             )
-            array_inputs[:,6] = values
+            array_inputs[:,8] = values
         elif mode in [6, "nb_tests"]:
             if values == None:
                 values = self.values_nb_tests
@@ -923,7 +930,7 @@ class TestBench(object):
                 [base for i in range(len(values))],
                 dtype = object
             )
-            array_inputs[:,7] = values
+            array_inputs[:,9] = values
         elif mode in [7, "multiple"]:
             if values == None:
                 raise(ValueError("An array must be in input"))
