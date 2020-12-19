@@ -7,7 +7,7 @@ The aim of this program is to train and test my networks on the well known
 mnist
 """
 
-from AI import *
+from not_parallel_AI import *
 
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
