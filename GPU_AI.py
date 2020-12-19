@@ -7,11 +7,12 @@ The aim of this program is to create an AI
     capable of selective memory
     capable of solving real time problems fast
     capable of simulating a Turing Machine
+The training is parallelized
 """
 
 # Necessary
 import numpy as np
-import multiprocessing as mp
+import pyopencl as cl
 import copy
 import time
 # Useful for compiling Network in machine code
@@ -33,6 +34,53 @@ def segments(x):
 
 def threshold(x):
     return(1*(x>0) + 0 -1*(x<0))
+
+# parallelization functions
+
+def extend(array, n=1):
+    r = []
+    for i in array:
+        for j in range(n):
+            r.append(copy.deepcopy(i))
+    return(r)
+
+def mean(array, n=1):
+    r = []
+    array += [0]*(-len(array)%n)
+    for i in range(0, len(array), n):
+        r.append(sum(array[i:i+n])/n)
+    return(r)
+
+def prob_reproduction(X):
+    """
+    A weird looking function for parallelization
+    X[0] is a group of objects
+    X[1] is their respective probability of being copied
+    X[2] = mutation_coefficent
+    X[3] = mutation_amplitude
+    returns the mutation of the chosen one
+    """
+    return(np.random.choice(X[0], p=X[1]).mutate(X[2], X[3]))
+
+def evaluate(X):
+    """
+    Another weird looking function
+    X[0] is a problem
+    X[1] is a network
+    returns the score of the network
+    """
+    np.random.seed()
+    X[0].reset()
+    X[1].reset()
+    return_value = X[0].experience(X[1])
+    return(return_value)
+
+def pooled_evolution(X):
+    """
+    Another one
+    """
+    r = X[0].evolve(X[1], X[2])
+    return(r, (X[0].members[0], r))
 
 # Save function
 
@@ -244,6 +292,11 @@ class Herd(object):
             + "number of generations to proceed : {}\n".format(nb_generations)
         )
         score_file.close()
+        self.Problem_pool = extend([self.Problem], self.size*self.nb_tests)
+        for pb in self.Problem_pool:
+            pb.do_display = False
+        if self.do_display:
+            self.Problem_pool[0].do_display = True
         for generation in range(nb_generations):
             # Evaluation of performances
             proba_reproduction = self.performances()
@@ -269,27 +322,43 @@ class Herd(object):
     def performances(self):
         """
         Evaluates performances then normalises them for probability operations
+        Can be parallelized
         """
-        self.score = np.zeros(self.size)
-        for index, member in enumerate(self.members):
-            member_score = 0
-            for i in range(self.nb_tests):
-                member_score += self.Problem.experience(member)
-                member.reset()
-            member_score /= self.nb_tests
-            self.score[index] = member_score
+        self.members_pool = extend(self.members, self.nb_tests)
+        # parallelize the evaluation of the networks
+        pool = mp.Pool()
+        member_s_points = pool.map(
+            evaluate,
+            [(P, M) for P,M in zip(self.Problem_pool, self.members_pool)]
+        )
+        pool.close()
+        # Put this code if you want to observe evolution, especially in the
+        # Gradient Descent Problem because parallelization makes it not work
+        #self.Problem.experience(self.members_pool[0])
+        #self.members_pool[0].reset()
+        self.score = mean(member_s_points, self.nb_tests)
         score_modif = self.modif_score(self.score)
         return(score_modif)
 
     def reproduce(self, proba_reproduction):
         """
         The copy of the successful networks with mutation
+        parallelized
         """
-        new_members = np.random.choice(self.members, p=proba_reproduction,
-                                       size = self.size)
-        for member in new_members:
-            member.mutate(self.mutation_coefficent, self.mutation_amplitude)
+        pool = mp.Pool()
+        new_members = (
+            pool.map(
+                prob_reproduction,
+                [(
+                    self.members,
+                    proba_reproduction,
+                    self.mutation_coefficent,
+                    self.mutation_amplitude
+                )]*self.size
+            )
+        )
         self.members = new_members
+        pool.close()
 
     def modif_score(self, score):
         """
@@ -432,6 +501,7 @@ class Network(object):
     def iteration(self):
         """
         We iterate once and update network state
+        Hopefully I can parallelize the matrix multiplication
         """
         self.values = self.function(
             np.matmul(self.weights, self.values + self.bias))
