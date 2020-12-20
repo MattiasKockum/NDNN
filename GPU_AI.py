@@ -51,10 +51,24 @@ def mean(array, n=1):
         r.append(sum(array[i:i+n])/n)
     return(r)
 
+# Members are put in form of a list [biais...weights...]
+# (size = nb_neurons*(nb_neurons + 1))
+kernel_mutate = """
+__kernel void reproduce(
+    __global float *member,
+    __global float *mutated_new_member
+    __global mutation_coefficent
+    __global mutation_amplitude)
+    {
+    
+    }
+"""
+kernel_evaluate = """ """
+
 def prob_reproduction(X):
     """
     A weird looking function for parallelization
-    X[0] is a group of objects
+    X[0] is a group of members
     X[1] is their respective probability of being copied
     X[2] = mutation_coefficent
     X[3] = mutation_amplitude
@@ -268,6 +282,11 @@ class Herd(object):
         self.date = date()
         self.max_score = 0
         self.max_score_index = 0
+        # Paralellization values
+        self.platform = cl.get_platforms()[0]
+        self.device = self.platform.get_devices()[0]
+        self.context = cl.Context([self.device])
+        self.queue = cl.CommandQueue(self.context)
 
     def evolve(self, problem, nb_generations=1):
         """
@@ -630,7 +649,10 @@ class Network(object):
         string_format_output = (self.nb_actors*"%lf ")[:-1]
         string_output = ""
         for i in range(self.nb_actors):
-            string_output += "N.values[NB_SENSORS + NB_ACTORS + {}], ".format(i)
+            string_output = (
+                string_output 
+                +"N.values[NB_SENSORS + NB_ACTORS + {}], ".format(i)
+                )
         string_output = string_output[:-2]
 
         c_code = (

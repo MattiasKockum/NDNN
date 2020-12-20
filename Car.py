@@ -11,10 +11,10 @@ import turtle
 from AI import *
 
 
-def rotation(vecteur2D, angle): # angle in radians
+def rotation(Vector2D, angle): # angle in radians
     matrice_rotation = np.array([[np.cos(angle), -np.sin(angle)],
                                  [np.sin(angle), np.cos(angle)]])
-    return(np.matmul(matrice_rotation, vecteur2D))
+    return(np.matmul(matrice_rotation, Vector2D))
 
 
 class Circuit():

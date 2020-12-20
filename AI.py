@@ -11,7 +11,6 @@ The aim of this program is to create an AI
 
 # Necessary
 import numpy as np
-import multiprocessing as mp
 import copy
 import time
 # Useful for compiling Network in machine code
