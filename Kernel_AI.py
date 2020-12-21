@@ -10,7 +10,7 @@ parallel training
 def Kernel_Code_Network(nb_sensors, nb_actors, nb_add_neurons,
                         period, function_name):
     if function_name == "ramp":
-            function = (
+            function_code = (
             """double ramp(double x)\n"""
             + """{\n"""
             + """    if (x>0)\n"""
@@ -25,7 +25,7 @@ def Kernel_Code_Network(nb_sensors, nb_actors, nb_add_neurons,
             + """\n"""
             )
     elif function_name == "sigmoid":
-            function = (
+            function_code = (
             """double sigmoid(double x)\n"""
             + """{\n"""
             + """    double r;\n"""
@@ -35,7 +35,7 @@ def Kernel_Code_Network(nb_sensors, nb_actors, nb_add_neurons,
             + """\n"""
             )
     elif function_name == "segments":
-            function = (
+            function_code = (
             """double segments(double x)\n"""
             + """{\n"""
             + """   if (x>1)\n"""
@@ -87,7 +87,7 @@ def Kernel_Code_Network(nb_sensors, nb_actors, nb_add_neurons,
             + """    for (i=0; i<NB_TOTAL_NEURONS; i++)\n"""
             + """    {\n"""
             + """        N->values[i] = {}(values2[i]);\n""".format(
-                function.__name__)
+                function_name)
             + """    }\n"""
             + """}\n"""
             + """\n"""
