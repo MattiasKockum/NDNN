@@ -19,6 +19,5 @@ def Kernel_Code_MNIST(function_name, nb_add_neurons, period):
     """
     AI_code = Kernel_Code_Network(28**2, 10, nb_add_neurons, period,
                                   function_name)
-    code = (AI_code + C_to_string("Kernel_MNIST.c")
-    )
+    code = (AI_code + C_to_string("Kernel_MNIST.c"))
     return(code)

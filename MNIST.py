@@ -101,6 +101,10 @@ class MNIST(Problem):
     def __name__(self):
         return("MNIST")
 
+    def Kernel_code(self):
+        code = ""
+        return(code)
+
     def reset(self):
         """
         Resets the problem

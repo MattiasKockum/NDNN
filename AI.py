@@ -7,6 +7,7 @@ The aim of this program is to create an AI
     capable of selective memory
     capable of solving real time problems fast
     capable of simulating a Turing Machine
+    It's supposed to be able de to convolution but not the best way
 """
 
 # Necessary
