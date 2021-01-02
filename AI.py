@@ -522,7 +522,7 @@ class Network(object):
             f.write(str(i) + "\n")
         f.close()
 
-    def compile(self, c_code_name = None, add_date = False):
+    def compile(self, c_code_name = None, add_date = False, save_exe = False):
         """
         Saves a compiled and usable c version of the Network,
         this is intended to be the final thing to do before using the Network
@@ -571,6 +571,10 @@ class Network(object):
             + """#define NB_ACTORS {}\n""".format(self.nb_actors)
             + """#define NB_ADD_NEURONS {}\n""".format(self.nb_add_neurons)
             + """#define PERIOD {}\n""".format(self.period)
+            + """#define FUNCTION {}\n""".format(self.function.__name__)
+            + """#define VALUES {}\n""".format(string_values)
+            + """#define BIAS {}\n""".format(string_bias)
+            + """#define WEIGHTS {}\n""".format(string_weights)
             + """#define NB_TOTAL_NEURONS NB_SENSORS + NB_ADD_NEURONS"""
                 + """ + NB_ACTORS\n"""
             + """\n"""
@@ -633,8 +637,7 @@ class Network(object):
             + """    }\n"""
             + """    for (i=0; i<NB_TOTAL_NEURONS; i++)\n"""
             + """    {\n"""
-            + """        N->values[i] = {}(values2[i]);\n""".format(
-                self.function.__name__)
+            + """        N->values[i] = FUNCTION(values2[i]);\n"""
             + """    }\n"""
             + """}\n"""
             + """\n"""
@@ -646,9 +649,9 @@ class Network(object):
             + """        return 1;\n"""
             + """    }\n"""
             + """    Network N = {\n"""
-            + """    {},\n""".format(string_values)
-            + """    {},\n""".format(string_bias)
-            + """    {},\n""".format(string_weights)
+            + """    VALUES,\n"""
+            + """    BIAS,\n"""
+            + """    WEIGHTS,\n"""
             + """    };\n"""
             + """    double values2[NB_TOTAL_NEURONS];\n"""
             + """    FILE *input_file;\n"""
@@ -688,13 +691,14 @@ class Network(object):
             + """    fclose(output_file);\n"""
             + """    fclose(input_file);\n"""
             + """    return 0;\n"""
-            + """}\n\n"""
+            + """}\n"""
             )
         f = open(c_code_name + ".c", "w")
         f.write(c_code)
         f.close()
         os.system("gcc -o {} {} -lm".format(c_code_name, c_code_name + ".c"))
-        os.system("rm {}".format(c_code_name + ".c"))
+        if not save_exe:
+            os.system("rm {}".format(c_code_name + ".c"))
 
     def reset(self):
         self.values = np.zeros(self.values.shape)
