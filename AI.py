@@ -232,7 +232,7 @@ class Herd(object):
             self.Problem = Problem()
         else:
             self.Problem = problem
-        score_file = open(problem.__name__() + "_score" + self.date, "w")
+        score_file = open(self.Problem.__name__() + "_score" + self.date, "w")
         score_file.write(
             "score\n"
             + "number of added neurons : {}\n".format(self.nb_add_neurons)
@@ -255,13 +255,15 @@ class Herd(object):
             self.array_scores.append(self.max_score)
             # Saves one Network and the score evolution
             self.members[self.max_score_index].save(
-                problem.__name__() + "_Network" + self.date, "w", False)
-            score_file = open(problem.__name__() + "_score" + self.date, "a")
+                self.Problem.__name__() + "_Network" + self.date, "w", False)
+            score_file = open(
+                self.Problem.__name__() + "_score" + self.date, "a"
+            )
             score_file.write(
                 "generation n° {} : {} \n".format(
                     generation, str(self.max_score)))
             score_file.close()
-        score_file = open(problem.__name__() + "_score" + self.date, "a")
+        score_file = open(self.Problem.__name__() + "_score" + self.date, "a")
         score_file.write("End\n")
         score_file.close()
         return(self.array_scores)

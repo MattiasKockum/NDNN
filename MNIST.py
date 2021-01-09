@@ -7,14 +7,18 @@ The aim of this program is to train and test my networks on the well known
 mnist
 """
 
-from not_parallel_AI import *
+from AI import *
 
+import numpy as np
+import mnist as mn
+# Only here for GPU processing (feel free to remove at will)
+from GPU_code_maker import *
+# Only here for fancy looking graphs (feel free to remove at will)
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-import numpy as np
-import mnist as mn
+
 
 TEST_IMAGES, TEST_LABELS = mn.test_images(), mn.test_labels()
 LEN = len(TEST_IMAGES)
@@ -102,8 +106,21 @@ class MNIST(Problem):
         return("MNIST")
 
     def Kernel_code(self):
-        code = ""
-        return(code)
+        """
+        Only here for GPU processing
+        """
+        return(C_to_string("Kernel_MNIST.c"))
+
+    def Kernel_init(self, length):
+        """
+        Returns the inputs values that will init the problem
+        They are here for randomisation reasons
+        """
+        inputs = []
+        for i in range(length):
+            inputs.append(self.number, *self.squished_image)
+            self.reset()
+        return(inputs)
 
     def reset(self):
         """

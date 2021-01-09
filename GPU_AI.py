@@ -84,18 +84,22 @@ class GPU_Herd(Herd):
         Opens and closes the score output file multiple times so that it's
         possible to see what's going on in during the training
         """
-        # Paralellization values
-        self.platform = cl.get_platforms()[0]
-        self.device = self.platform.get_devices()[0]
-        self.context = cl.Context([self.device])
-        self.queue = cl.CommandQueue(self.context)
         # Saving problem
         if problem == None:
             # The empty problem, just here for quick tests
-            self.Problem = Problem()
+            self.Problem = GPU_Problem()
         else:
             self.Problem = problem
-        score_file = open(problem.__name__() + "_score" + self.date, "w")
+        # Paralellization values
+        platform = cl.get_platforms()[0]
+        device = platform.get_devices()[0]
+        context = cl.Context([device])
+        queue = cl.CommandQueue(context)
+        mf = cl.mem_flags
+        kernel_program = cl.Program(context, self.Problem.Kernel_code()).build()
+        score = [0]*(self.size*self.nb_tests)
+        # Opening score file
+        score_file = open(self.Problem.__name__() + "_score" + self.date, "w")
         score_file.write(
             "score\n"
             + "number of added neurons : {}\n".format(self.nb_add_neurons)
@@ -107,14 +111,20 @@ class GPU_Herd(Herd):
             + "number of generations to proceed : {}\n".format(nb_generations)
         )
         score_file.close()
-        self.Problem_pool = extend([self.Problem], self.size*self.nb_tests)
+        # Display instruction
         for pb in self.Problem_pool:
             pb.do_display = False
         if self.do_display:
             self.Problem_pool[0].do_display = True
+        # Evolution
         for generation in range(nb_generations):
             # Evaluation of performances
-            proba_reproduction = self.performances()
+            kernel_program.experience(
+                queue,
+                self.Problem.Kernel_init(self.size*self.nb_tests),
+                biasAndWeights,
+                score
+            )
             # Reproduction (with mutation) of Networks
             self.reproduce(proba_reproduction)
             # Saves the scores
@@ -123,37 +133,18 @@ class GPU_Herd(Herd):
             self.array_scores.append(self.max_score)
             # Saves one Network and the score evolution
             self.members[self.max_score_index].save(
-                problem.__name__() + "_Network" + self.date, "w", False)
-            score_file = open(problem.__name__() + "_score" + self.date, "a")
+                self.Problem.__name__() + "_Network" + self.date, "w", False)
+            score_file = open(
+                self.Problem.__name__() + "_score" + self.date, "a"
+            )
             score_file.write(
                 "generation n° {} : {} \n".format(
                     generation, str(self.max_score)))
             score_file.close()
-        score_file = open(problem.__name__() + "_score" + self.date, "a")
+        score_file = open(self.Problem.__name__() + "_score" + self.date, "a")
         score_file.write("End\n")
         score_file.close()
         return(self.array_scores)
-
-    def performances(self):
-        """
-        Evaluates performances then normalises them for probability operations
-        Can be parallelized
-        """
-        self.members_pool = extend(self.members, self.nb_tests)
-        # parallelize the evaluation of the networks
-        pool = mp.Pool()
-        member_s_points = pool.map(
-            evaluate,
-            [(P, M) for P,M in zip(self.Problem_pool, self.members_pool)]
-        )
-        pool.close()
-        # Put this code if you want to observe evolution, especially in the
-        # Gradient Descent Problem because parallelization makes it not work
-        #self.Problem.experience(self.members_pool[0])
-        #self.members_pool[0].reset()
-        self.score = mean(member_s_points, self.nb_tests)
-        score_modif = self.modif_score(self.score)
-        return(score_modif)
 
     def reproduce(self, proba_reproduction):
         """
@@ -207,7 +198,8 @@ class GPU_Network(Network):
                                           output
     ]
     """
-    pass
+    def flatten(self):
+        return(self.bias + self.weights.reshape((self.nb_neurons**2, )))
 
 
 class TestBench(object):
