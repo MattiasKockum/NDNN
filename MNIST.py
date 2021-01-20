@@ -110,16 +110,21 @@ class MNIST(Problem):
         Only here for GPU processing
         """
         return(C_to_string("Kernel_MNIST.c"))
+        #return(C_to_string("Kernel_MNIST_test.c"))
 
-    def Kernel_init(self, length):
+    def Kernel_inputs(self, length):
         """
         Returns the inputs values that will init the problem
         They are here for randomisation reasons
         """
         inputs = []
         for i in range(length):
-            inputs.append(self.number, *self.squished_image)
+            i_input = []
+            i_input.append(self.number)
+            for j in self.squished_image:
+                i_input.append(j)
             self.reset()
+            inputs.append(i_input)
         return(inputs)
 
     def reset(self):

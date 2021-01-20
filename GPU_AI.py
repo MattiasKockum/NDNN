@@ -10,6 +10,7 @@ The training is parallelized
 # Necessary
 from AI import *
 import pyopencl as cl
+from GPU_code_maker import *
 # Useful for compiling Network in machine code
 import os
 # Useful for easy data visualisation
@@ -78,6 +79,14 @@ class GPU_Herd(Herd):
     """
     Herd of networks that evolve by reproducing
     """
+    def make_members(self, kwargs):
+        self.members = [
+            GPU_Network(self.nb_sensors, self.nb_actors, self.nb_add_neurons,
+                        self.period, self.function, self.reset_after_process,
+                        **kwargs)
+            for i in range(self.size)
+        ]
+
     def evolve(self, problem, nb_generations=1):
         """
         The idea is to make the AI evolve by aproximating the gradient descent
@@ -96,8 +105,12 @@ class GPU_Herd(Herd):
         context = cl.Context([device])
         queue = cl.CommandQueue(context)
         mf = cl.mem_flags
-        kernel_program = cl.Program(context, self.Problem.Kernel_code()).build()
-        score = [0]*(self.size*self.nb_tests)
+        definitions = defines(self.nb_sensors, self.nb_actors,
+                              self.nb_add_neurons, self.period,
+                              self.function.__name__)
+        AI_code = C_to_string("Kernel_AI.c")
+        code = definitions + AI_code + self.Problem.Kernel_code()
+        kernel_program = cl.Program(context, code).build()
         # Opening score file
         score_file = open(self.Problem.__name__() + "_score" + self.date, "w")
         score_file.write(
@@ -112,19 +125,37 @@ class GPU_Herd(Herd):
         )
         score_file.close()
         # Display instruction
+        """
         for pb in self.Problem_pool:
             pb.do_display = False
         if self.do_display:
             self.Problem_pool[0].do_display = True
+        """
         # Evolution
         for generation in range(nb_generations):
+            # Initialization of values and buffers
+            Problem_inputs = self.Problem.Kernel_inputs(self.size*self.nb_tests)
+            Network_inputs = []
+            for member in self.members:
+                Network_values = []
+                for value in member.flatten():
+                    Network_values.append(value)
+                Network_inputs.append(Network_values)
+            Kernel_inputs = []
+            for i in range(self.nb_tests*self.size):
+                Kernel_input = []
+                Kernel_input += Problem_inputs[i]
+                Kernel_input += Network_inputs[i%(self.nb_tests*self.size)]
+                Kernel_inputs.append(Kernel_input)
+            Kernel_inputs_buffer = cl.Buffer(context,
+                                             mf.READ_ONLY | mf.COPY_HOST_PTR,
+                                             hostbuf=np.array(Kernel_inputs))
+            score = np.zeros((self.size*self.nb_tests, ))
+            score_buffer = cl.Buffer(context, mf.WRITE_ONLY, score.nbytes)
             # Evaluation of performances
             kernel_program.experience(
-                queue,
-                self.Problem.Kernel_init(self.size*self.nb_tests),
-                biasAndWeights,
-                score
-            )
+                queue, Kernel_inputs.shape, None,
+                Kernel_inputs_buffer, score_buffer)
             # Reproduction (with mutation) of Networks
             self.reproduce(proba_reproduction)
             # Saves the scores
@@ -199,7 +230,8 @@ class GPU_Network(Network):
     ]
     """
     def flatten(self):
-        return(self.bias + self.weights.reshape((self.nb_neurons**2, )))
+        return(list(self.bias)
+               + list(self.weights.reshape((self.nb_neurons**2,))))
 
 
 class TestBench(object):

@@ -206,20 +206,26 @@ class Herd(object):
         self.nb_actors = nb_actors
         self.nb_add_neurons = nb_add_neurons
         self.period = period
+        self.function = function
+        self.reset_after_process = reset_after_process
         self.size = size
         self.mutation_coefficent = mutation_coefficent
         self.mutation_amplitude = mutation_amplitude
         self.nb_tests = nb_tests
         self.do_display = do_display
-        self.members = [
-            Network(nb_sensors, nb_actors, nb_add_neurons, period, function,
-                    reset_after_process, **kwargs)
-            for i in range(size)
-        ]
+        self.make_members(kwargs)
         self.array_scores = []
         self.date = date()
         self.max_score = 0
         self.max_score_index = 0
+
+    def make_members(self, kwargs):
+        self.members = [
+            Network(self.nb_sensors, self.nb_actors, self.nb_add_neurons,
+                    self.period, self.function, self.reset_after_process,
+                    **kwargs)
+            for i in range(size)
+        ]
 
     def evolve(self, problem, nb_generations=1):
         """
@@ -583,20 +589,20 @@ class Network(object):
             + """\n"""
             + """typedef struct Network\n"""
             + """{\n"""
-            + """    double values[NB_TOTAL_NEURONS];\n"""
-            + """    double bias[NB_TOTAL_NEURONS];\n"""
-            + """    double weights[NB_TOTAL_NEURONS][NB_TOTAL_NEURONS];\n"""
+            + """    float values[NB_TOTAL_NEURONS];\n"""
+            + """    float bias[NB_TOTAL_NEURONS];\n"""
+            + """    float weights[NB_TOTAL_NEURONS][NB_TOTAL_NEURONS];\n"""
             + """}\n"""
             + """Network;\n"""
             + """\n"""
-            + """double sigmoid(double x)\n"""
+            + """float sigmoid(float x)\n"""
             + """{\n"""
-            + """    double r;\n"""
+            + """    float r;\n"""
             + """    r = -1 + (2/(1+exp(-x)));\n"""
             + """    return r;\n"""
             + """}\n"""
             + """\n"""
-            + """double ramp(double x)\n"""
+            + """float ramp(float x)\n"""
             + """{\n"""
             + """    if (x>0)\n"""
             + """    {\n"""
@@ -608,7 +614,7 @@ class Network(object):
             + """    }\n"""
             + """}\n"""
             + """\n"""
-            + """double segments(double x)\n"""
+            + """float segments(float x)\n"""
             + """{\n"""
             + """   if (x>1)\n"""
             + """    {\n"""
@@ -623,7 +629,7 @@ class Network(object):
             + """\n"""
             + """void iteration(Network *N)\n"""
             + """{\n"""
-            + """    double values2[NB_TOTAL_NEURONS];\n"""
+            + """    float values2[NB_TOTAL_NEURONS];\n"""
             + """    int i;\n"""
             + """    int j;\n"""
             + """    for (i=0; i<NB_TOTAL_NEURONS; i++)\n"""
@@ -656,7 +662,7 @@ class Network(object):
             + """    BIAS,\n"""
             + """    WEIGHTS,\n"""
             + """    };\n"""
-            + """    double values2[NB_TOTAL_NEURONS];\n"""
+            + """    float values2[NB_TOTAL_NEURONS];\n"""
             + """    FILE *input_file;\n"""
             + """    input_file = fopen(argv[1], "r");\n"""
             + """    if (input_file == NULL)\n"""
