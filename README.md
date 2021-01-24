@@ -44,18 +44,18 @@ TB = TestBench(
     50, # nb_generations
     9, # nb_add_neurons
     1, # period
-	segments, # function
-	True, # reset_after_process
+    segments, # function
+    True, # reset_afet_process
     500, # size
     0.02, # mutation_coefficient
     0.001, # mutation_amplitude
     20, # nb_tests
-	True, # do_display_execution
-	"plot", # display_result_mode
+    True, # do_display_execution
+    "plot", # display_results_mode
     slices=[5, 4],
     regions=[
-        [False, False, False, False]
-        [True, False, False, False]
+        [False, False, False, False],
+        [True, False, False, False],
         [False, True, False, False],
         [False, False, True, False],
     ]
