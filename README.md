@@ -87,4 +87,8 @@ And use it with streams of input and output
 
 Have a nice learning session!
 
-(Also, most .py files have a main function, try executing ./Gradient.py to get a grasp of how it works)
+(Also, most .py files have a main function, try executing
+```zsh
+python Gradient.py
+```
+to get a grasp of how it works)
