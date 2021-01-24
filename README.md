@@ -10,13 +10,13 @@ The goal with this architecture is to mimic the brain and see what happens.
 I have some ideas on what type of data this architecture will be good for.
 For exemple live problems like driving a car: The network is constantly fed
 with informations and is constantly analysing them, what's more is that 
-if the car see any danger it will be able to short cut it's process by
-using the networks that are directly between the input and the output.
-Antother exemple is when a problem involve some long/short term memory,
+if the car sees any danger it will be able to short cut it's process by
+using the neurons that are directly liked between the input and the output.
+Antother exemple is when a problem involves some long/short term memory,
 this architecture is able to provide memory cells that actually are neurons
 that loops on themselves.
 
-## How to use it?
+## How is the program done?
 The main program is called AI.py and it provides the user with four useful
 classes : Problem, Herd, Network and TestBench.
 The Problem class is the framework of any live problem so it's easier for the
@@ -28,6 +28,7 @@ inputs fed from the Problem into itself.
 The TestBench class is here to see how everything matchup by providing some
 tests the user might want to perform.
 
+## How to use it?
 First what you want to do is find/code a Problem you like and initialize it.
 Then you want to make your Network learn on it, so typically you would use a
 TestBench to do so.
@@ -43,10 +44,14 @@ TB = TestBench(
     50, # nb_generations
     9, # nb_add_neurons
     1, # period
+	segments, # function
+	True, # reset_after_process
     500, # size
     0.02, # mutation_coefficient
     0.001, # mutation_amplitude
     20, # nb_tests
+	True, # do_display_execution
+	"plot", # display_result_mode
     slices=[5, 4],
     regions=[
         [False, False, False, False]
@@ -58,7 +63,7 @@ TB = TestBench(
 TB.test(0)
 ```
 
-Next what you can do is load_networking the saved network and see how it performs.
+Next what you can do is load_network the saved network and see how it performs.
 
 In this exemple it would look like that:
 
@@ -81,3 +86,5 @@ And use it with streams of input and output
 ```
 
 Have a nice learning session!
+
+(Also, most .py files have a main function, try executing ./Gradient.py to get a grasp of how it works)

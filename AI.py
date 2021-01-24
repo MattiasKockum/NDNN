@@ -109,10 +109,12 @@ class Problem(object):
     """
     The frame of any "live" problem
     """
-    def __init__(self, do_display = False):
+    def __init__(self, do_run_display = False, do_end_display = False):
         self.nb_sensors = 1
         self.nb_actors = 1
         self.score = 0
+        self.do_run_display = do_run_display
+        self.do_end_display = do_end_display
         print("Warning  : __init__ was not fully configured")
 
     def experience(self, Network):
@@ -164,11 +166,17 @@ class Problem(object):
 
     # Other action related functions should be put here
 
-    def display(self):
+    def run_display(self):
         """
         Shows how things are doing
         """
-        print("Warning : experience was not fully configured")
+        print("Warning : run_display was not fully configured")
+
+    def end_display(self):
+        """
+        Shows what happened
+        """
+        print("Warning : end_display was not fully configured")
 
     # Other display functions should be put here
 
@@ -180,7 +188,13 @@ class Problem(object):
         Resets the problem
         """
         print("Maybe some HUGE PROBLEM is coming at you bro")
-        self.__init__()
+        self.__init__(self.do_run_display, self.do_end_display)
+
+    def clean(self):
+        """
+        Removes eventual values that stay upon reset
+        """
+        pass
 
 
 class Herd(object):
@@ -224,7 +238,7 @@ class Herd(object):
             Network(self.nb_sensors, self.nb_actors, self.nb_add_neurons,
                     self.period, self.function, self.reset_after_process,
                     **kwargs)
-            for i in range(size)
+            for i in range(self.size)
         ]
 
     def evolve(self, problem, nb_generations=1):
@@ -257,7 +271,7 @@ class Herd(object):
             self.reproduce(proba_reproduction)
             # Saves the scores
             self.max_score = max(self.score)
-            self.max_score_index = self.score.index(self.max_score)
+            self.max_score_index = list(self.score).index(self.max_score)
             self.array_scores.append(self.max_score)
             # Saves one Network and the score evolution
             self.members[self.max_score_index].save(
@@ -271,6 +285,8 @@ class Herd(object):
             score_file.close()
         score_file = open(self.Problem.__name__() + "_score" + self.date, "a")
         score_file.write("End\n")
+        if self.Problem.do_end_display:
+            self.Problem.end_display()
         score_file.close()
         return(self.array_scores)
 
@@ -293,8 +309,9 @@ class Herd(object):
         """
         The copy of the successful networks with mutation
         """
-        new_members = np.random.choice(self.members, p=proba_reproduction,
-                                       size = self.size)
+        new_members = [copy.deepcopy(np.random.choice(
+                        self.members, p=proba_reproduction))
+                        for i in range(self.size)]
         for member in new_members:
             member.mutate(self.mutation_coefficent, self.mutation_amplitude)
         self.members = new_members
@@ -487,24 +504,22 @@ class Network(object):
         Return the mutated Network
         """
         np.random.seed() # For multiprocressing
-        mn = copy.deepcopy(self) # mutated network
-        for i in range(mn.nb_neurons*(mn.nb_neurons + 1)):
+        for i in range(self.nb_neurons*(self.nb_neurons + 1)):
             # If there is a mutation
             if np.random.choice(
                 [True, False],
                 p = [mutation_coefficent, 1 - mutation_coefficent]
             ):
                 # If the iterator corresponds to a weight, we modify it
-                if i < mn.nb_neurons**2:
-                    mn.weights[i//mn.nb_neurons][i%mn.nb_neurons] += (
+                if i < self.nb_neurons**2:
+                    self.weights[i//self.nb_neurons][i%self.nb_neurons] += (
                         np.random.normal(0, mutation_amplitude)
                     )
                 # Elsif it corresponds to a bias we modify it
-                elif i < mn.nb_neurons*(mn.nb_neurons + 1):
-                    mn.bias[i - mn.nb_neurons**2] += (
+                elif i < self.nb_neurons*(self.nb_neurons + 1):
+                    self.bias[i - self.nb_neurons**2] += (
                         np.random.normal(0, mutation_amplitude)
                     )
-        return(mn)
 
     def save(self, file_name = None, mode = "a", add_date = True):
         """
@@ -762,14 +777,14 @@ class TestBench(object):
         problem,
         nb_herds = 1,
         nb_generations = 20,
-        nb_add_neurons = 9,
+        nb_add_neurons = 0,
         period = 1,
         function = segments,
         reset_after_process = True,
         size = 100,
-        mutation_coefficent = 0.0001,
-        mutation_amplitude = 0.01,
-        nb_tests = 2,
+        mutation_coefficent = 1,
+        mutation_amplitude = 0.1,
+        nb_tests = 1,
         do_display_execution = False,
         display_results_mode = None,
         **kwargs
@@ -904,14 +919,16 @@ class TestBench(object):
         self.series = []
 
     def display_table(self, Variables_values):
-        Variables_name_1 = np.array(["nb of added", "",
-                          "herd's", "mutation",
-                          "mutation", "nb of", ""])
-        Variables_name_2 = np.array(["neurons", "period",
-                                     "size", "coefficent", "amplitude",
-                                     "tests", "color"])
-        form ="{:<12} {:<7} {:<7} {:<11} {:<11} {:<7} {:<0}"
-        for i in [Variables_name_1, Variables_name_2, *Variables_values]:
+        Variables_name_1 = ['nb added', 'nb', "function's", "herd's",
+                                     'mutation', 'mutation', 'nb of', '']
+        Variables_name_2 = ['neurons', 'period', 'name', 'size',
+                                'coefficent', 'amplitude', 'tests', 'color']
+        form ="{:<9} {:<7} {:<11} {:<7} {:<11} {:<10} {:<0}"
+        Printable_values = []
+        for i in Variables_values:
+            j = list(i)
+            Printable_values.append(j[0:2] + [j[2].__name__] + j[4:])
+        for i in [Variables_name_1, Variables_name_2, *Printable_values]:
             print(form.format(*i))
 
     def display_console(self, archive = False):
