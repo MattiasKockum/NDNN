@@ -104,17 +104,22 @@ def under_diag(size):
         matrix[i+1][i] = 1
     return(matrix)
 
+def maxindex(array):
+    """
+    Very useful for saying which of the output neurons is the most activated
+    """
+    return(list(array).index(max(array)))
 
 class Problem(object):
     """
     The frame of any "live" problem
     """
     def __init__(self, do_run_display = False, do_end_display = False):
+        self.do_run_display = do_run_display
+        self.do_end_display = do_end_display
         self.nb_sensors = 1
         self.nb_actors = 1
         self.score = 0
-        self.do_run_display = do_run_display
-        self.do_end_display = do_end_display
         print("Warning  : __init__ was not fully configured")
 
     def experience(self, Network):
@@ -124,7 +129,10 @@ class Problem(object):
         """
         print("Warning  : experience was not fully configured")
         while not self.end_condition():
-            self.action(Network)
+            output = Network.process(self.state())
+            self.action(output)
+            if self.do_run_display:
+                self.run_display()
         self.score_update()
         score = self.score
         self.reset()
@@ -152,16 +160,14 @@ class Problem(object):
         Updates the score of the problem at the moment
         """
         print("Warning score_update was not fully configured")
-        score = 0
-        self.score = score*(score>0)
+        self.score = self.score*(self.score>0)
         # score should always be > 0
 
-    def action(self, Network):
+    def action(self, output):
         """
         Computes the consequences of the input_data on the problem
         """
         print("Warning  : action was not fully configured")
-        output = Network.process(self.state())
         pass
 
     # Other action related functions should be put here

@@ -78,7 +78,7 @@ class MNIST(Problem):
         Updates the score of the problem at the moment
         """
         score = 0
-        if list(self.output).index(max(self.output)) == self.number:
+        if maxindex(self.output) == self.number:
             score = 1
         # score should always be > 0
         self.score = (score>0)*score
