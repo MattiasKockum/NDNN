@@ -63,6 +63,13 @@ TB = TestBench(
 TB.test(0)
 ```
 
+Also if you don't know what values to put you can always try this to put some
+good enough values and see what they are:
+
+```python
+TB.set_estimated(True)
+```
+
 Next what you can do is load_network the saved network and see how it performs.
 
 In this exemple it would look like that:
