@@ -28,7 +28,7 @@ class Catch():
     object = 0.2
     spot = 0.3
     """
-    def __init__(self, do_run_display = True, do_end_display = False,
+    def __init__(self, do_run_display = False, do_end_display = False,
                  size = 4, max_score = 100):
         self.do_run_display = do_run_display
         self.do_end_display = do_end_display

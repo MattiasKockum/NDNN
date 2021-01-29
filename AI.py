@@ -804,6 +804,7 @@ class TestBench(object):
         self.problem = problem
         self.nb_sensors = problem.nb_sensors
         self.nb_actors = problem.nb_actors
+        self.nb_neurons = self.nb_sensors + self.nb_actors + self.nb_add_neurons
         self.period = period
         self.function = function
         self.reset_after_process = reset_after_process
@@ -924,6 +925,72 @@ class TestBench(object):
         # reset the self.series for if it is needed after
         self.series = []
 
+    def set_estimated(self, print_values = False):
+        self.mutation_amplitude = self.estimated_mutation_amplitude()
+        self.mutation_coefficent = self.estimated_mutation_coefficient()
+        self.size = self.estimated_size()
+        self.nb_tests = self.estimated_nb_tests()
+        self.nb_generations = self.estimated_nb_generations()
+        if print_values:
+            print(("mutation_amplitude : {}\nmutation_coefficient : {}"
+                  + "\nsize : {}\nnb_tests: {}\nnb_generations : {}").format(
+                      self.mutation_amplitude, self.mutation_coefficent,
+                      self.size, self.nb_tests, self.nb_generations))
+
+    def estimated_distance(self):
+        """
+        An approximation of the distance between a random Network and
+        the perfectly fit Network (if ever it exists)
+        """
+        return(np.sqrt(self.nb_neurons*(self.nb_neurons + 1)))
+
+    def estimated_mutation_amplitude(self):
+        """
+        An idea of the good mutation_amplitude to progress
+        I want it to be pretty sure that at least one Network will not move
+        from the best place I've found so that I don't lose it
+        Also I need to be sure I don't search to far from where the goal is
+        """
+        # This value of 100 is a test
+        return(self.estimated_distance()/100)
+
+    def estimated_mutation_coefficient(self):
+        """
+        An idea of the good mutation_coefficent to progress
+        I am now less sure this will be useful to keep differnt from 0
+        """
+        return(1)
+
+    def estimated_size(self):
+        """
+        An idea of the good size to progress
+        I want to be pretty sure that at least one of the Networks will be on
+        the right path
+        """
+        return(2*self.nb_neurons*(self.nb_neurons + 1))
+
+    def estimated_nb_generations(self):
+        """
+        An idea of the good nb_generations to attain the perfect Network
+        """
+        return(100)
+
+    def estimated_nb_tests(self):
+        """
+        An idea of the good number of tests to do to fit the problem
+        """
+        l = 100
+        tolerance = 0.6
+        N = Network(self.nb_sensors, self.nb_actors, self.nb_add_neurons,
+                    self.period, self.function, self.reset_after_process)
+        tests = [self.problem.experience(N) for i in range(l)]
+        mean = [np.mean(tests[:i+1]) for i in range(l)]
+        last = mean[-1]
+        i = 1
+        while mean[i] > last*(1+tolerance) or mean[i] < last*(1-tolerance):
+            i += 1
+        return(i)
+
     def display_table(self, Variables_values):
         Variables_name_1 = ['nb added', 'nb', "function's", "herd's",
                                      'mutation', 'mutation', 'nb of', '']
@@ -933,7 +1000,9 @@ class TestBench(object):
         Printable_values = []
         for i in Variables_values:
             j = list(i)
-            Printable_values.append(j[0:2] + [j[2].__name__] + j[4:])
+            Printable_values.append(j[0:2] + [j[2].__name__] + j[4:5]
+                                    + [str(j[5])[0:9]] + [str(j[6])[0:9]]
+                                    + [j[-2]])
         for i in [Variables_name_1, Variables_name_2, *Printable_values]:
             print(form.format(*i))
 
