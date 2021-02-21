@@ -134,6 +134,12 @@ class MNIST(Problem):
         self.__init__(self.do_display)
 
 
+def display_image(image):
+    fig, ax = plt.subplots()
+    im = ax.imshow(image)
+    plt.show()
+
+
 def main():
     nb_sensors = 28*28
     nb_actors = 10

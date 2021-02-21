@@ -34,6 +34,32 @@ def segments(x):
 def threshold(x):
     return(1*(x>0) + 0 -1*(x<0))
 
+def convolution(entry, kernel):
+    """
+    entry and kernel must be numpy arrays
+    kernel must be able to fit into entry
+    """
+    dim_diff = len(entry.shape) - len(kernel.shape) 
+    if dim_diff < 0:
+        raise(ValueError("kernel's dimension greater than entry's"))
+    kernel = np.expand_dims(kernel, axis=[i for i in range(dim_diff)])
+    dim = len(kernel.shape)
+    shape_diff = [entry.shape[i] - kernel.shape[i] + 1 for i in range(dim)]
+    if True in [i < 0 for i in shape_diff]:
+        raise(ValueError("kernel bigger than entry in one dimension"))
+    output = np.zeros(shape_diff)
+    iterator = np.zeros((dim))
+    while True in (iterator != shape_diff):
+        # incrementation
+        i = -1
+        print(iterator, shape_diff)
+        iterator[i] += 1
+        while iterator[i] > shape_diff[i]:
+            iterator[i] = 0
+            i -= 1
+            iterator[i] += 1
+    return(output)
+
 # Save function
 
 def load_network(file_name):
@@ -925,17 +951,24 @@ class TestBench(object):
         # reset the self.series for if it is needed after
         self.series = []
 
-    def set_estimated(self, print_values = False):
+    def set_estimated(self):
         self.mutation_amplitude = self.estimated_mutation_amplitude()
         self.mutation_coefficent = self.estimated_mutation_coefficient()
         self.size = self.estimated_size()
         self.nb_tests = self.estimated_nb_tests()
         self.nb_generations = self.estimated_nb_generations()
-        if print_values:
-            print(("mutation_amplitude : {}\nmutation_coefficient : {}"
-                  + "\nsize : {}\nnb_tests: {}\nnb_generations : {}").format(
-                      self.mutation_amplitude, self.mutation_coefficent,
-                      self.size, self.nb_tests, self.nb_generations))
+
+    def estimation(self):
+        X = []
+        X.append(self.estimated_mutation_amplitude())
+        X.append(self.estimated_mutation_coefficient())
+        X.append(self.estimated_size())
+        X.append(self.estimated_nb_tests())
+        X.append(self.estimated_nb_generations())
+        print(("mutation_amplitude : {}\nmutation_coefficient : {}"
+              + "\nsize : {}\nnb_tests: {}\nnb_generations : {}").format(
+              X[0], X[1], X[2], X[3], X[4]))
+        return(X)
 
     def estimated_distance(self):
         """
@@ -952,7 +985,7 @@ class TestBench(object):
         Also I need to be sure I don't search to far from where the goal is
         """
         # This value of 100 is a test
-        return(self.estimated_distance()/100)
+        return(self.estimated_distance()/5)
 
     def estimated_mutation_coefficient(self):
         """

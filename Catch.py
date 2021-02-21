@@ -139,6 +139,7 @@ class Catch():
 def main():
     P = Catch(False, False, 4, 100)
     TB = TestBench(P, 1, 50, 9, 3, nb_tests=10)
+    TB.set_estimated(True)
     TB.test(0)
     TB.display_console(True)
 

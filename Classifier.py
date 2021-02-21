@@ -22,7 +22,10 @@ class Classifier(Problem):
     A negative output means Blue, a positive means Red
     White means we don't care or no value was given
     """
-    def __init__(self, plane = None, do_display = True):
+    def __init__(self, do_run_display = False, do_end_display = False,
+                plane = None):
+        self.do_run_display = do_run_display
+        self.do_end_display = do_end_display
         self.nb_sensors = 2
         self.nb_actors = 1
         self.score = 0
@@ -46,7 +49,6 @@ class Classifier(Problem):
         for row in self.plane:
             for value in row:
                 self.score_max += abs(value)
-        self.do_display = do_display
         self.colors = {-1: "b", 0: "w", 1: "r"}
         self.classification = np.zeros((self.size, self.size))
         self.classified = False
@@ -63,7 +65,7 @@ class Classifier(Problem):
             self.action()
         self.score_update()
         score = self.score
-        if self.do_display:
+        if self.do_run_display:
             self.display()
         self.reset()
         return(score)
@@ -135,7 +137,7 @@ class Classifier(Problem):
         """
         Resets the problem
         """
-        self.__init__(self.plane, self.do_display)
+        self.__init__(self.do_run_display, self.do_end_display, self.plane)
 
 
 
@@ -144,7 +146,7 @@ def main():
              slices = [2, 5, 5, 5, 1], regions=under_diag(18))
     C = Classifier(None, False)
     H.evolve(C, 20)
-    C.do_display = True
+    C.do_run_display = True
     N = H.members[0]
     print(C.experience(N))
 
