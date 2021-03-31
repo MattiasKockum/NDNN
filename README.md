@@ -5,7 +5,7 @@ It's a neural network with only one layer, but this layer loops back onto
 itself, just like how the brain does: multiple neurons called at the same
 time and which call each other right after.
 
-## What is it disigned for?
+## What is it designed for?
 The goal with this architecture is to mimic the brain and see what happens.
 I have some ideas on what type of data this architecture will be good for.
 For exemple live problems like driving a car: The network is constantly fed

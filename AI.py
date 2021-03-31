@@ -50,9 +50,9 @@ def convolution(entry, kernel):
     output = np.zeros(shape_diff)
     iterator = np.zeros((dim))
     while True in (iterator != shape_diff):
+        pass
         # incrementation
         i = -1
-        print(iterator, shape_diff)
         iterator[i] += 1
         while iterator[i] > shape_diff[i]:
             iterator[i] = 0
