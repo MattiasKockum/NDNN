@@ -142,13 +142,15 @@ class Classifier(Problem):
 
 
 def main():
-    H = Herd(2, 1, 15, 3, 100, 0.1, 0.001, 1, True,
-             slices = [2, 5, 5, 5, 1], regions=under_diag(18))
     C = Classifier(None, False)
-    H.evolve(C, 20)
-    C.do_run_display = True
-    N = H.members[0]
-    print(C.experience(N))
+    T = TestBench(C)
+    T.test()
+    #H = Herd(2, 1, 15, 3, 100, 0.1, 0.001, 1, True,
+    #         slices = [2, 5, 5, 5, 1], regions=under_diag(18))
+    #H.evolve(C, 20)
+    #C.do_run_display = True
+    #N = H.members[0]
+    #print(C.experience(N))
 
 if __name__ == "__main__":
     main()

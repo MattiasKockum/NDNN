@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 
 # activation functions
 
+
 def sigmoid(x):
 	return(-1 + 2/(1+np.e**(-x)))
 
@@ -140,13 +141,15 @@ class Problem(object):
     """
     The frame of any "live" problem
     """
-    def __init__(self, do_run_display = False, do_end_display = False):
+    def __init__(self, do_run_display = False, do_end_display = False,
+                number_tests = 1):
+        print("Warning  : __init__ was not fully configured")
         self.do_run_display = do_run_display
         self.do_end_display = do_end_display
         self.nb_sensors = 1
         self.nb_actors = 1
+        self.number_tests = number_tests
         self.score = 0
-        print("Warning  : __init__ was not fully configured")
 
     def experience(self, Network):
         """
@@ -154,15 +157,17 @@ class Problem(object):
         This is the main function of a problem
         """
         print("Warning  : experience was not fully configured")
-        while not self.end_condition():
-            output = Network.process(self.state())
-            self.action(output)
-            if self.do_run_display:
-                self.run_display()
-        self.score_update()
-        score = self.score
+        total_score = 0
+        for test in range(self.number_tests):
+            while not self.end_condition():
+                output = Network.process(self.state())
+                self.action(output)
+                if self.do_run_display:
+                    self.run_display()
+            self.score_update()
+            total_score += self.score
         self.reset()
-        return(score)
+        return(score/self.number_tests)
 
     def end_condition(self):
         """
@@ -186,8 +191,8 @@ class Problem(object):
         Updates the score of the problem at the moment
         """
         print("Warning score_update was not fully configured")
-        self.score = self.score*(self.score>0)
         # score should always be > 0
+        self.score = self.score*(self.score>0)
 
     def action(self, output):
         """
