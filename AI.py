@@ -141,14 +141,12 @@ class Problem(object):
     """
     The frame of any "live" problem
     """
-    def __init__(self, do_run_display = False, do_end_display = False,
-                number_tests = 1):
+    def __init__(self, do_run_display = False, do_end_display = False,):
         print("Warning  : __init__ was not fully configured")
         self.do_run_display = do_run_display
         self.do_end_display = do_end_display
         self.nb_sensors = 1
         self.nb_actors = 1
-        self.number_tests = number_tests
         self.score = 0
 
     def experience(self, Network):
@@ -158,14 +156,13 @@ class Problem(object):
         """
         print("Warning  : experience was not fully configured")
         total_score = 0
-        for test in range(self.number_tests):
-            while not self.end_condition():
-                output = Network.process(self.state())
-                self.action(output)
-                if self.do_run_display:
-                    self.run_display()
-            self.score_update()
-            total_score += self.score
+        while not self.end_condition():
+            output = Network.process(self.state())
+            self.action(output)
+            if self.do_run_display:
+                self.run_display()
+        self.score_update()
+        total_score += self.score
         self.reset()
         return(score/self.number_tests)
 
