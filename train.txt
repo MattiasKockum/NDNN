@@ -1,0 +1,2 @@
+nohup python[3] prog.py &
+avec un main bien fichu (comme dans gradient.py)
