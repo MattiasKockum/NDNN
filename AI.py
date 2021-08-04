@@ -35,6 +35,9 @@ def segments(x):
 def threshold(x):
     return(1*(x>0) + 0 -1*(x<0))
 
+def tanh(x):
+    return(np.tanh(x))
+
 def convolution(entry, kernel):
     """
     entry and kernel must be numpy arrays
@@ -164,7 +167,7 @@ class Problem(object):
         self.score_update()
         total_score += self.score
         self.reset()
-        return(score/self.number_tests)
+        return(score)
 
     def end_condition(self):
         """
@@ -242,7 +245,7 @@ class Herd(object):
         nb_add_neurons = 0,
         period = 1,
         function = segments,
-        reset_after_process = True,
+        reset_after_process = False,
         size = 5,
         mutation_coefficent = 0.1,
         mutation_amplitude = 0.001,
@@ -281,11 +284,12 @@ class Herd(object):
         Opens and closes the score output file multiple times so that it's
         possible to see what's going on in during the training
         """
+        # Sets the problem if none is given, useful for tests
         if problem == None:
-            # The empty problem, just here for quick tests
             self.Problem = Problem()
         else:
             self.Problem = problem
+        # Saving into file
         score_file = open(self.Problem.__name__() + "_score" + self.date, "w")
         score_file.write(
             "score\n"
@@ -298,6 +302,7 @@ class Herd(object):
             + "number of generations to proceed : {}\n".format(nb_generations)
         )
         score_file.close()
+        # Actual evolution
         for generation in range(nb_generations):
             # Evaluation of performances
             proba_reproduction = self.performances()
@@ -409,7 +414,7 @@ class Network(object):
         nb_add_neurons = 0,
         period = 1,
         function = segments,
-        reset_after_process = True,
+        reset_after_process = False,
         **kwargs # "weights", "bias", "slices", "regions"
     ):
         self.nb_sensors = nb_sensors
@@ -470,12 +475,12 @@ class Network(object):
                 )
         self.bias = np.random.rand(self.nb_neurons) - 0.5
 
-    def process(self, input_data, nb_iterations=1):
+    def process(self, input_data):
         """
         What the network does
         """
         self.input(input_data)
-        for i in range(nb_iterations):
+        for i in range(self.period):
             self.iteration()
         output = self.output()
         if self.reset_after_process:
@@ -800,6 +805,11 @@ class Network(object):
         ax.set_title("values of internal values, weights and bias")
         fig.tight_layout()
         plt.show()
+
+def ClassicNetwork(layers, function=sigmoid, reset_after_process=True):
+        return(Network(layers[0], layers[-1], sum(layers[1:-1]),
+                       len(layers)-1, function, reset_after_process,
+                       slices=layers, regions=under_diag(len(layers))))
 
 
 class TestBench(object):

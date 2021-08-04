@@ -6,6 +6,9 @@ On 15/07/2020
 The aim of this program is to train and test my networks
 """
 
+import sys
+sys.path.append("..")
+
 from AI import *
 
 from mpl_toolkits.mplot3d import Axes3D
@@ -15,7 +18,7 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
 
 
-class Gradient_Descent_Test():
+class Gradient_Descent_Test(Problem):
     """
     """
     def __init__(self, do_run_display = False, do_end_display = True,
@@ -108,39 +111,15 @@ def gradient(X, Y):
     )
 
 
-def main(
-    nb_herds = 1,
-    nb_generations = 10,
-    nb_add_neurons = 0,
-    period = 1,
-    function = segments,
-    reset_after_process = True,
-    size = 20, # The higher the better the exploration is
-    mutation_coefficient = 1,
-    mutation_amplitude = 0.01,
-    nb_tests = 1, # put higher to speedtest your CPU/GPU
-    do_display_execution = False,
-    display_results_mode = "console"
-    ):
-    # Replace nb_generations by 1 to see evolution frame by frame
+def main():
+    """
+    Just a simple proof the evolution is well capable of doing
+    gradient descent
+    """
+    H = Herd(1, 0, 0, size=2,
+             mutation_coefficient=1, mutation_amplitude=0.01)
     P = Gradient_Descent_Test()
-    TB = TestBench(
-        P, # Problem
-        nb_herds,
-        nb_generations,
-        nb_add_neurons,
-        period,
-        function,
-        reset_after_process,
-        size,
-        mutation_coefficient,
-        mutation_amplitude,
-        nb_tests,
-        do_display_execution,
-        display_results_mode
-    )
-    TB.set_estimated()
-    TB.test("simple")
+    H.evolve(P, 200)
 
 if __name__ == "__main__":
     pass

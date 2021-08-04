@@ -1,0 +1,8 @@
+Pour importer un module dans l'arborescence 
+```
+import sys
+
+sys.path.append( '/alpha/beta' )
+import mymodule
+```
+
