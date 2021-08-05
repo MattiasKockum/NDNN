@@ -4,6 +4,8 @@
 Some activations functions for the IA
 """
 
+import numpy as np
+
 def sigmoid(x):
     return(-1 + 2/(1+np.e**(-x)))
 

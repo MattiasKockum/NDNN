@@ -178,15 +178,15 @@ class TestBench(object):
 
     def estimated_distance(self):
         """
-        An approximation of the distance between a random Network and
-        the perfectly fit Network (if ever it exists)
+        An approximation of the distance between a random NDNN and
+        the perfectly fit NDNN (if ever it exists)
         """
         return(np.sqrt(self.nb_neurons*(self.nb_neurons + 1)))
 
     def estimated_mutation_amplitude(self):
         """
         An idea of the good mutation_amplitude to progress
-        I want it to be pretty sure that at least one Network will not move
+        I want it to be pretty sure that at least one NDNN will not move
         from the best place I've found so that I don't lose it
         Also I need to be sure I don't search to far from where the goal is
         """
@@ -203,14 +203,14 @@ class TestBench(object):
     def estimated_size(self):
         """
         An idea of the good size to progress
-        I want to be pretty sure that at least one of the Networks will be on
+        I want to be pretty sure that at least one of the NDNNs will be on
         the right path
         """
         return(2*self.nb_neurons*(self.nb_neurons + 1))
 
     def estimated_nb_generations(self):
         """
-        An idea of the good nb_generations to attain the perfect Network
+        An idea of the good nb_generations to attain the perfect NDNN
         """
         return(100)
 
@@ -220,7 +220,7 @@ class TestBench(object):
         """
         l = 100
         tolerance = 0.6
-        N = Network(self.nb_sensors, self.nb_actors, self.nb_add_neurons,
+        N = NDNN(self.nb_sensors, self.nb_actors, self.nb_add_neurons,
                     self.function)
         tests = [self.problem.experience(N) for i in range(l)]
         mean = [np.mean(tests[:i+1]) for i in range(l)]

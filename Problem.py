@@ -20,7 +20,7 @@ class Problem(object):
     The problem has to be coded in a copy of it
     just so that the function stay the same with every problem
     """
-    def __init__(self, do_run_display = False, do_end_display = False,):
+    def __init__(self, do_run_display = False, do_end_display = False):
         print("Warning  : __init__ was not fully configured")
         self.do_run_display = do_run_display
         self.do_end_display = do_end_display
@@ -34,16 +34,14 @@ class Problem(object):
         This is the main function of a problem
         """
         print("Warning  : experience was not fully configured")
-        total_score = 0
         while not self.end_condition():
             output = Network.process(self.state())
             self.action(output)
             if self.do_run_display:
                 self.run_display()
         self.score_update()
-        total_score += self.score
         self.reset()
-        return(score)
+        return(self.score)
 
     def end_condition(self):
         """

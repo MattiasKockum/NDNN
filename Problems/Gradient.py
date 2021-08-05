@@ -7,6 +7,7 @@ The aim of this program is to train and test my networks
 """
 
 import sys
+sys.path.append(".")
 sys.path.append("..")
 
 from AI import *
@@ -116,8 +117,7 @@ def main():
     Just a simple proof the evolution is well capable of doing
     gradient descent
     """
-    H = Herd(1, 0, 0, size=2,
-             mutation_coefficient=1, mutation_amplitude=0.01)
+    H = Herd(1, 0, 0, size=2, mutation_amplitude=0.01)
     P = Gradient_Descent_Test()
     H.evolve(P, 200)
 

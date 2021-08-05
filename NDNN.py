@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class Network(object):
+class NDNN(object):
     """
     A neural network, but won directional
     it has input, output, and hidden neurons
@@ -65,7 +65,7 @@ class Network(object):
 
     def iterate(self):
         """
-        We iterate once and update network state
+        Iterate once and update network state
         """
         self.values = self.function(
             np.matmul(self.weights, self.values + self.bias))

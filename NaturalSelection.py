@@ -39,7 +39,7 @@ class Herd(object):
         self.mutation_amplitude = mutation_amplitude
         self.nb_tests = nb_tests
         self.members = [
-            Network(self.nb_sensors, self.nb_actors, self.nb_add_neurons,
+            NDNN(self.nb_sensors, self.nb_actors, self.nb_add_neurons,
                     self.function, **kwargs)
             for i in range(self.size)
         ]
@@ -52,7 +52,7 @@ class Herd(object):
         for generation in range(nb_generations):
             # Evaluation of performances
             proba_reproduction = self.performances(problem)
-            # Reproduction (with mutation) of Networks
+            # Reproduction (with mutation) of NDNNs
             self.reproduce(proba_reproduction)
 
         if problem.do_end_display:
@@ -94,7 +94,7 @@ class Herd(object):
 
 def mutate(network, mutation_amplitude):
     """
-    Mutates the given Network
+    Mutates the given NDNN
     """
     N = network.nb_neurons
 
@@ -111,7 +111,7 @@ def mutate(network, mutation_amplitude):
 
 def load_Herd(file_name, size = 100, mc = 0.1, ma = 0.001, nb_tests = 2):
     """
-    Recreate a Herd based on the saved Network
+    Recreate a Herd based on the saved NDNN
     """
     N = load_network(file_name)[0]
     H = Herd(N.nb_sensors, N.nb_actors, N.nb_add_neurons, size,

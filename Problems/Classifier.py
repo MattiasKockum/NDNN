@@ -6,13 +6,48 @@ On 15/07/2020
 The aim of this program is to train and test my networks
 """
 
+import sys
+sys.path.append(".")
+sys.path.append("..")
+sys.path.append("../ModelAI")
+
+
 from AI import *
+from Classic import *
 
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
+
+
+plane0 = np.array([
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+])
+
+plane1 = 1.1*np.array([
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  1,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0, -1,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+])
+
 
 
 class Classifier(Problem):
@@ -22,52 +57,37 @@ class Classifier(Problem):
     A negative output means Blue, a positive means Red
     White means we don't care or no value was given
     """
-    def __init__(self, do_run_display = False, do_end_display = False,
-                plane = None):
+    def __init__(self, plane = plane1,
+                 do_run_display = False, do_end_display = True
+                ):
+        self.plane = plane
         self.do_run_display = do_run_display
         self.do_end_display = do_end_display
         self.nb_sensors = 2
         self.nb_actors = 1
         self.score = 0
-        if type(plane) == type(None):
-            self.plane = np.array([
-                [ 1,  1,  1,  1,  0,  0,  0,  0,  0,  0], # o----->x
-                [ 1,  1,  1,  1,  0,  0,  0,  0,  0,  0], # |
-                [ 0,  0,  0,  0,  0,  0,  0,  0,  1,  0], # |
-                [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0], # |
-                [ 0,  0,  0,  1,  1,  1,  0,  0,  0,  0], # V
-                [ 0,  0,  0,  0,  0,  1,  0,  0,  0,  0], # y
-                [ 0,  0,  0,  0,  0,  1,  0,  0,  0,  0], #
-                [ 0, -1, -1,  0,  0,  1,  0, -1, -1, -1], #
-                [ 0, -1, -1, -1,  0,  1,  0, -1, -1, -1], #
-                [ 0,  0,  0,  0,  0,  1,  0, -1, -1, -1], #
-            ])
-        else:
-            self.plane = plane
         self.size = len(self.plane)
-        self.score_max = 0
-        for row in self.plane:
-            for value in row:
-                self.score_max += abs(value)
-        self.colors = {-1: "b", 0: "w", 1: "r"}
-        self.classification = np.zeros((self.size, self.size))
         self.classified = False
+        self.x = 0
+        self.y = 0
 
-    def experience(self, Network):
+    def experience(self, network):
         """
         Computes the actions of a network on the problem
         This is the main function of a problem
-        To be consistent the Network should be of the form:
-            [[0, 0, 0], [0, 0, 0], [X, Y, 0]]
         """
-        self.Network = Network
         while not self.end_condition():
-            self.action()
+            value = self.plane[self.x][self.y]
+            output = network.process(self.state())
+            network.reset()
+            self.action(output)
+        # Here do_run_display is moved out of the loop for a reason
+        if self.do_run_display:
+            self.run_display(network)
         self.score_update()
         score = self.score
-        if self.do_run_display:
-            self.display()
         self.reset()
+        print(score)
         return(score)
 
     def end_condition(self):
@@ -81,52 +101,72 @@ class Classifier(Problem):
         """
         Returns the state of the problem
         """
-        print("Warning  : state was not fully configured")
-        return(np.array([1]))
+        return([self.x, self.y])
 
     # Other state related functions should be there
 
     def score_update(self):
         """
         Updates the score of the problem at the moment
-        1 good prediction = +1pt
-        1 bad prediction = -1pt
         """
-        score = 0
-        for y, row in enumerate(self.plane):
-            for x, value in enumerate(row):
-                score += value*self.classification[y][x]
-        # score should always be > 0
-        score /= self.score_max
-        self.score = (score>0)*score
+        self.score = (self.score>0)*self.score
 
-    def action(self):
+    def action(self, output):
         """
         Computes the consequences of the input_data on the problem
         """
-        preclassification = [[
-            self.Network.process(np.array((x/self.size, y/self.size)))
-            for x in range(self.size)]
-            for y in range(self.size)]
-        self.classification = [[
-            threshold(value[0])
-            for value in row]
-            for row in preclassification]
-        self.classified = True
+        guess = output[0]
+        value = self.plane[self.x][self.y]
+        if value != 0:
+            # Diff can't be 0
+            self.score += abs(1/(value - guess))
+        # Update the coords
+        self.x += 1
+        self.x %= self.size
+        if self.x == 0:
+            self.y += 1
+            self.y %= self.size
+        if (self.x, self.y) == (0, 0):
+            self.classified = True
+
 
     # Other action related functions should be put here
 
-    def display(self):
-        """
-        Shows how things are doing
-        """
-        for y, row in enumerate(self.plane):
-            for x, value in enumerate(row):
-                plt.scatter(x, y, color=self.colors[value], marker="x")
-        for y, row in enumerate(self.classification):
-            for x, value in enumerate(row):
-                plt.scatter(x, y, color=self.colors[value], marker="$O$")
-        plt.show()
+    def run_display(self, network):
+       """
+       Shows how things are doing
+       """
+       fig = plt.figure()
+       ax = fig.gca(projection='3d')
+
+       # Make data.
+       X = np.arange(0, self.size, 1)
+       Y = np.arange(0, self.size, 1)
+       X, Y = np.meshgrid(X, Y)
+       Z = np.zeros(X.shape)
+       for x in range(X.shape[0]):
+           for y in range(X.shape[1]):
+               Z[y][x] = network.process([x, y])
+               network.reset()
+
+       # Plot the surface.
+       surf = ax.plot_wireframe(X, Y, Z, color="#0F0F0F0F")
+
+       for x in range(self.size):
+           for y in range(self.size):
+               value = self.plane[x][y]
+               if value > 1:
+                   ax.scatter([x], [y], [1], color="red")
+               elif value < 0:
+                   ax.scatter([x], [y], [-1], color="blue")
+
+       plt.show()
+
+    def end_display(self):
+       """
+       Shows what happened
+       """
+       pass
 
     # Other display functions should be put here
 
@@ -137,20 +177,19 @@ class Classifier(Problem):
         """
         Resets the problem
         """
-        self.__init__(self.do_run_display, self.do_end_display, self.plane)
+        self.__init__(self.plane,
+                      self.do_run_display, self.do_end_display)
 
 
 
 def main():
-    C = Classifier(None, False)
-    T = TestBench(C)
-    T.test()
-    #H = Herd(2, 1, 15, 3, 100, 0.1, 0.001, 1, True,
-    #         slices = [2, 5, 5, 5, 1], regions=under_diag(18))
-    #H.evolve(C, 20)
-    #C.do_run_display = True
-    #N = H.members[0]
-    #print(C.experience(N))
+    C = Classifier(plane1, False, False)
+    H = Herd(2, 1, 0, sigmoid, 2, 0.9)
+    H.evolve(C, 50)
+    N = H.members[0]
+    C.do_run_display = True
+    print(C.experience(N))
+    return(0)
 
 if __name__ == "__main__":
     main()
