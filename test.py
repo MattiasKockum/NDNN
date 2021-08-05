@@ -51,8 +51,10 @@ def displayNetwork(net):
         plt.show()
 
 def main(parameters):
-    layers = [int(i) for i in parameters[1:]]
-    N = ClassicNetwork(layers)
+    #layers = [int(i) for i in parameters[1:]]
+    #N = ClassicNetwork(layers)
+    N = Network(2, 1, 6, 3)
+    N.display()
     displayNetwork(N)
 
 
