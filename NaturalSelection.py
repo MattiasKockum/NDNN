@@ -52,7 +52,7 @@ class Herd(object):
         for generation in range(nb_generations):
             # Evaluation of performances
             proba_reproduction = self.performances(problem)
-            # Reproduction (with mutation) of NDNNs
+            # Reproduction (with mutation) of Networks
             self.reproduce(proba_reproduction)
 
         if problem.do_end_display:
@@ -63,15 +63,21 @@ class Herd(object):
         Evaluates performances of all the networks on the problem
         then normalises them for probability operations
         """
-        score = np.zeros(self.size)
 
+        score = problem.experience(self.members)
+
+        """
+        OLD WAY
         # Evaluation #
+        #score = np.zeros(self.size)
         for index, member in enumerate(self.members):
             for i in range(self.nb_tests):
                 score[index] += problem.experience(member)
                 member.reset()
+        """
 
         # Normalisation #
+        #print(score)
         score = score - min(score)
         if list(score) == list(np.zeros(self.size)):
             score = np.ones(self.size)
