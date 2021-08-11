@@ -67,8 +67,3 @@ class TournamentTree(object):
     def __repr__(self):
         return(self.__str__())
 
-
-Players = [i for i in range(200)]
-TT = TournamentTree(Players)
-while len(TT.next_opposition()) != 1:
-    TT.win(np.random.choice(TT.next_opposition()))

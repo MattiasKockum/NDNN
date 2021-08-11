@@ -41,17 +41,28 @@ class Problem(object):
         This is the main function of a problem
         """
         print("Warning  : experience was not fully configured")
-        # Values set here are not affected by reset of the problem
-        self.score = np.zeros((len(networks)))
-        self.networks = networks
+        self.experience_preparation(networks)
         while not self.experience_ended():
-            playing_index = self.organisation()
+            self.problem_preparation()
             while not self.problem_ended():
                 self.action(playing_index)
                 if self.do_run_display:
                     self.run_display()
             self.reset()
         return(self.score)
+
+    def experience_preparation(self, networks):
+        # Values set here are not affected by reset of the problem
+        # Common
+        self.score = np.zeros((len(networks)))
+        self.networks = networks
+        # Class specific
+
+    def problem_preparation(self):
+        # Common
+        self.score = np.zeros((len(networks)))
+        playing_index = self.organisation()
+        # Class specific
 
     def experience_ended(self):
         """
