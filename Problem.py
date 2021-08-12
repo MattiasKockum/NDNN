@@ -150,6 +150,7 @@ def main(parameters):
     H = Herd(P.nb_sensors, P.nb_actors,
              0, size=2, mutation_amplitude=0.01)
     H.evolve(P, 200)
+    save(H.members[0], "sauvnet.svn")
 
 if __name__ == "__main__":
     main(sys.argv)
