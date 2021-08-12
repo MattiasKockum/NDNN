@@ -41,6 +41,7 @@ class Problem(object):
         This is the main function of a problem
         """
         print("Warning  : experience was not fully configured")
+        # Values set here are not affected by reset of the problem
         self.experience_preparation(networks)
         while not self.experience_ended():
             self.problem_preparation()
@@ -52,7 +53,6 @@ class Problem(object):
         return(self.score)
 
     def experience_preparation(self, networks):
-        # Values set here are not affected by reset of the problem
         # Common
         self.score = np.zeros((len(networks)))
         self.networks = networks
@@ -150,7 +150,7 @@ def main(parameters):
     H = Herd(P.nb_sensors, P.nb_actors,
              0, size=2, mutation_amplitude=0.01)
     H.evolve(P, 200)
-    save(H.members[0], "sauvnet.svn")
+    save(H.members[0], "sauvnet")
 
 if __name__ == "__main__":
     main(sys.argv)

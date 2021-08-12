@@ -15,6 +15,8 @@ from ActivationFunctions import *
 import numpy as np
 import matplotlib.pyplot as plt
 
+from datetime import date
+
 
 class NDNN(object):
     """
@@ -114,14 +116,16 @@ def displayNetwork(network):
 
 # Save function
 
-def save(network, file_name = None, mode = "a", add_date = True):
+def save(network, file_name = None, mode = "a", add_date = True,
+         extension=".svn"):
     """
     Saves the network into a file
     """
     if file_name == None:
         file_name = "NDNN"
     if add_date:
-        file_name += date()
+        file_name += str(date.today())
+    file_name += extension
     f = open(file_name, mode)
     f.write(
         "Network\n"
