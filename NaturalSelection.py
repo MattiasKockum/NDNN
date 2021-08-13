@@ -44,7 +44,7 @@ class Herd(object):
             for i in range(self.size)
         ]
 
-    def evolve(self, problem, nb_generations=1):
+    def evolve(self, problem, nb_generations=1, save_name=None):
         """
         The idea is to make the AI evolve by aproximating
         the gradient descent
@@ -54,6 +54,8 @@ class Herd(object):
             proba_reproduction = self.performances(problem)
             # Reproduction (with mutation) of Networks
             self.reproduce(proba_reproduction)
+            if save_name != None:
+                save_network(self.members[0], save_name)
 
         if problem.do_end_display:
             problem.end_display()

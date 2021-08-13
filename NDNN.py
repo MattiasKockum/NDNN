@@ -116,7 +116,7 @@ def displayNetwork(network):
 
 # Save function
 
-def save(network, file_name = None, mode = "a", add_date = True,
+def save_network(network, file_name = None, mode = "a", add_date = True,
          extension=".svn"):
     """
     Saves the network into a file
