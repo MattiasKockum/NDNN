@@ -35,8 +35,7 @@ class NDNN(object):
         nb_sensors = 1, # Note that if you want only one neuron just take
         nb_actors = 0, # one sensor and no actor
         nb_add_neurons = 0,
-        function = segments,
-        **kwargs # "weights", "bias"
+        function = segments
     ):
         self.nb_sensors = nb_sensors
         self.nb_actors = nb_actors
@@ -167,8 +166,9 @@ def load_network(file_name):
                 bias[i] = np.float64(f.readline())
             for i in range(size):
                 values[i] = np.float64(f.readline())
-            N = Network(nb_sensors, nb_actors, nb_add_neurons,
-                        weights=weights, bias=bias)
+            N = NDNN(nb_sensors, nb_actors, nb_add_neurons)
+            N.weights = weights
+            N.bias = bias
             r.append(N)
         else:
             exit = True
