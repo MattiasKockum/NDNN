@@ -142,7 +142,7 @@ def save_network(network, file_name = None, mode = "a", add_date = True,
     f.close()
 
 
-def load_network(file_name):
+def load_networks(file_name):
     """
     Extract all the Networks from a save file and put them in a list
     I lose data in the process, must investigate that

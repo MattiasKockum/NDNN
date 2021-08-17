@@ -28,7 +28,6 @@ class Herd(object):
         function = segments,
         size = 2,
         mutation_amplitude = 0.01,
-        nb_tests = 1,
         **kwargs
     ):
         self.nb_sensors = nb_sensors
@@ -37,7 +36,6 @@ class Herd(object):
         self.function = function
         self.size = size
         self.mutation_amplitude = mutation_amplitude
-        self.nb_tests = nb_tests
         self.members = [
             NDNN(self.nb_sensors, self.nb_actors, self.nb_add_neurons,
                     self.function, **kwargs)
@@ -67,17 +65,6 @@ class Herd(object):
         """
 
         score = problem.experience(self.members)
-
-        """
-        OLD WAY
-        # Evaluation #
-        #score = np.zeros(self.size)
-        for index, member in enumerate(self.members):
-            for i in range(self.nb_tests):
-                score[index] += problem.experience(member)
-                member.reset()
-        """
-
         # Normalisation #
         #print(score)
         score = score - min(score)
@@ -117,13 +104,13 @@ def mutate(network, mutation_amplitude):
 
 # Save functions
 
-def load_Herd(file_name, size = 100, mc = 0.1, ma = 0.001, nb_tests = 2):
+def load_Herd(file_name, size = 100, mc = 0.1, ma = 0.001):
     """
     Recreate a Herd based on the saved NDNN
     """
     N = load_network(file_name)[0]
     H = Herd(N.nb_sensors, N.nb_actors, N.nb_add_neurons, size,
-             mc, ma, nb_tests, weights = N.weights, bias = N.bias)
+             mc, ma, weights = N.weights, bias = N.bias)
     return(H)
 
 # Misc functions
