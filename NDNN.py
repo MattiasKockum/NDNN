@@ -31,12 +31,13 @@ class NDNN(object):
     so I believe the Network will have both fast and slow thinking.
     """
     def __init__(
-        self,
-        nb_sensors = 1, # Note that if you want only one neuron just take
-        nb_actors = 0, # one sensor and no actor
-        nb_add_neurons = 0,
-        function = segments
-    ):
+            self,
+            nb_sensors = 1, # 1 neurone = 1 sensor and 0 actor
+            nb_actors = 0,
+            nb_add_neurons = 0,
+            function = segments,
+            weights = None,
+            bias = None):
         self.nb_sensors = nb_sensors
         self.nb_actors = nb_actors
         self.nb_add_neurons = nb_add_neurons
@@ -44,11 +45,18 @@ class NDNN(object):
         self.nb_neurons = nb_add_neurons + nb_actors + nb_sensors
         self.values = np.zeros((self.nb_neurons))
 
-        self.weights = (
-            np.random.rand(self.nb_neurons, self.nb_neurons)
-            - 0.5
-        )
-        self.bias = np.random.rand(self.nb_neurons) - 0.5
+        if type(weights) == type(None):
+            self.weights = (
+                np.random.rand(self.nb_neurons, self.nb_neurons)
+                - 0.5
+            )
+        else:
+            self.weights = weights
+
+        if type(bias) == type(None):
+            self.bias = np.random.rand(self.nb_neurons) - 0.5
+        else:
+            self.bias = bias
 
     def process(self, input_data):
         """
@@ -73,10 +81,6 @@ class NDNN(object):
 
     def reset(self):
         self.values = np.zeros(self.values.shape)
-
-
-
-
 
 
 # Display

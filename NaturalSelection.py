@@ -10,7 +10,6 @@ from NDNN import *
 
 # Necessary
 import numpy as np
-import copy
 import time
 
 
@@ -21,15 +20,14 @@ class Herd(object):
     Herd of networks that evolve by reproducing
     """
     def __init__(
-        self,
-        nb_sensors = 1,
-        nb_actors = 0,
-        nb_add_neurons = 0,
-        function = segments,
-        size = 2,
-        mutation_amplitude = 0.01,
-        **kwargs
-    ):
+            self,
+            nb_sensors = 1,
+            nb_actors = 0,
+            nb_add_neurons = 0,
+            function = segments,
+            size = 2,
+            mutation_amplitude = 0.01,
+            **kwargs):
         self.nb_sensors = nb_sensors
         self.nb_actors = nb_actors
         self.nb_add_neurons = nb_add_neurons
@@ -77,17 +75,31 @@ class Herd(object):
         """
         The copy of the successful networks with mutation
         """
-        new_members = [copy.deepcopy(np.random.choice(
+        new_members = [deepcopy_network(np.random.choice(
                         self.members, p=proba_reproduction))
                         for i in range(self.size)]
         for member in new_members:
-            mutate(member, self.mutation_amplitude)
+            mutate_network(member, self.mutation_amplitude)
         self.members = new_members
 
 
-# Mutation function
+# Copying network function
 
-def mutate(network, mutation_amplitude):
+def deepcopy_network(network):
+    copy_object = NDNN(
+        network.nb_sensors,
+        network.nb_actors,
+        network.nb_add_neurons,
+        network.function,
+        network.weights,
+        network.bias
+    )
+    return(copy_object)
+
+
+# Mutating network function
+
+def mutate_network(network, mutation_amplitude):
     """
     Mutates the given NDNN
     """
@@ -113,16 +125,10 @@ def load_Herd(file_name, size = 100, mc = 0.1, ma = 0.001):
              mc, ma, weights = N.weights, bias = N.bias)
     return(H)
 
+
 # Misc functions
 
 def date():
     t = time.localtime()
     return("_{}_{}_{}_{}_{}".format(t[0], t[1], t[2], t[3], t[4]))
-
-def maxindex(array):
-    """
-    Very useful for saying which of the output neurons is
-    the most activated
-    """
-    return(list(array).index(max(array)))
 
