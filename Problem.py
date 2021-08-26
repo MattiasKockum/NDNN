@@ -46,7 +46,7 @@ class Problem(object):
         while not self.experience_ended():
             self.problem_preparation()
             while not self.problem_ended():
-                self.action(self.playing_index)
+                self.action()
                 if self.do_run_display:
                     self.run_display()
             self.reset()
@@ -60,7 +60,7 @@ class Problem(object):
 
     def problem_preparation(self):
         # Common
-        self.playing_index = self.organisation()
+        self.playing_indexes = self.organisation()
         # Class specific
 
     def experience_ended(self):
@@ -98,14 +98,14 @@ class Problem(object):
 
     # Other state related functions should be there
 
-    def action(self, playing_index):
+    def action(self):
         """
         Computes what the networks do and puts the score accordingly
         """
         print("Warning  : action was not fully configured")
-        #network = self.network[playing_index[0]]
+        #network = self.networks[self.playing_indexes[0]]
         #output = network.process(self.state())
-        self.score[playing_index] = 0
+        self.score[self.playing_indexes] = 0
 
     # Other action related functions should be put here
 
@@ -145,10 +145,12 @@ class Problem(object):
 
 
 def main(parameters):
+    # General evolution
     P = YourProblem()
     H = Herd(P.nb_sensors, P.nb_actors,
              0, size=2, mutation_amplitude=0.01)
     H.evolve(P, 200, "sauvenet")
+    # Exploitation
 
 if __name__ == "__main__":
     main(sys.argv)
