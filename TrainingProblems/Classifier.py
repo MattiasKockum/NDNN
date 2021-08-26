@@ -70,25 +70,25 @@ class Classifier(Problem):
     White means we don't care or no value was given
     """
     def __init__(self, plane = plane1,
-                 do_run_display = False, do_end_display = True
-                ):
-        self.plane = plane
-        self.do_run_display = do_run_display
-        self.do_end_display = do_end_display
+                 do_run_display = False,
+                 do_end_display = True):
+        # Common
         self.nb_sensors = 2
         self.nb_actors = 1
-        self.score = 0
+        self.do_run_display = do_run_display
+        self.do_end_display = do_end_display
+        # Class specific
+        self.plane = plane
         self.size = len(self.plane)
-        self.classified = False
-        self.x = 0
-        self.y = 0
 
-    def experience(self, network):
+    def experience(self, networks):
         """
         Computes the actions of a network on the problem
         This is the main function of a problem
         """
-        while not self.end_condition():
+        self.experience_preparation(networks)
+        while not self.experience_ended():
+            self.problem_preparation()
             value = self.plane[self.x][self.y]
             output = network.process(self.state())
             network.reset()
@@ -102,7 +102,41 @@ class Classifier(Problem):
         print(score)
         return(score)
 
-    def end_condition(self):
+    def experience_preparation(self, networks):
+        # Common
+        self.score = np.zeros((len(networks)))
+        self.networks = networks
+        # Class specific
+        self.score = 0
+        self.classified = False
+        self.x = 0
+        self.y = 0
+
+    def problem_preparation(self):
+        # Common
+        self.score = np.zeros((len(networks)))
+        playing_index = self.organisation()
+        # Class specific
+
+    def experience_ended(self):
+        """
+        True if every network has been evaluated
+        False otherwise
+        """
+        print("Warning  : experience_ended was not fully configured")
+        return(True)
+
+    def organisation(self):
+        """
+        Return the indexes of the network(s) that must play the next game
+        Can be a tree for 1v1
+        Can be a line for solo evaluation
+        Can be everyone at the same time etc
+        """
+        print("Warning  : organisation was not fully configured")
+        return(0)
+
+    def problem_ended(self):
         """
         True if the Problem is finished for whatever reason
         False if it goes on

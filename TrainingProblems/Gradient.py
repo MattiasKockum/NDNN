@@ -3,17 +3,19 @@
 """
 Program written by Mattias Kockum
 On the 15/7/2020
+The aim of this program is to test the basic problem
+And to prove Gradient descent work well
 """
 
 
 # Necessary
 import numpy as np
-# Class specifique
+
+# Class specific
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
-import numpy as np
 
 # For Main
 import sys
@@ -21,22 +23,23 @@ sys.path.append(".")
 sys.path.append("..")
 from AI import *
 
+
 class Gradient(Problem):
     """
     The frame of any "live" problem
     The problem has to be coded in a copy of it
     just so that the function stay the same with every problem
     """
-    def __init__(self, do_run_display = False, do_end_display = True,
-                score=None, clean_after_shown=True, points=[]):
+    def __init__(self, do_run_display = False, do_end_display = False,
+                clean_after_shown=True, points=[]):
+        # Common
         self.nb_sensors = 1
         self.nb_actors = 0
         self.do_run_display = do_run_display
         self.do_end_display = do_end_display
-        self.score = score
+        # Class specific
         self.clean_after_shown = clean_after_shown
         self.points = points
-        self.operation_done = False
 
     def experience(self, networks):
         """
@@ -44,16 +47,34 @@ class Gradient(Problem):
         This is the main function of a problem
         """
         self.score = np.zeros((len(networks)))
-        # Exemple for a solo problem
-        for index, network in enumerate(networks):
-            while not self.end_condition():
-                self.action(network, index)
+        self.networks = networks
+        self.operation_done = False
+        while not self.experience_ended():
+            playing_index = self.organisation()
+            while not self.problem_ended():
+                self.action(playing_index)
                 if self.do_run_display:
                     self.run_display()
             self.reset()
         return(self.score)
 
-    def end_condition(self):
+    def experience_ended(self):
+        """
+        True if every network has been evaluated
+        False otherwise
+        """
+        return(self.operation_done)
+
+    def organisation(self):
+        """
+        Return the indexes of the network(s) that must play the next game
+        Can be a tree for 1v1
+        Can be a line for solo evaluation
+        Can be everyone at the same time etc
+        """
+        return([i for i in range(len(self.networks))])
+
+    def problem_ended(self):
         """
         True if the Problem is finished for whatever reason
         False if it goes on
@@ -64,19 +85,22 @@ class Gradient(Problem):
         """
         Returns the state of the problem
         """
-        print("Warning  : state was not fully configured")
+        #print("Warning  : state was not fully configured")
+        #We don't care here
         return(np.array([1]))
 
     # Other state related functions should be there
 
-    def action(self, network, index):
+    def action(self, playing_index):
         """
-        Computes the consequences of the input_data on the problem
+        Computes what the networks do and puts the score accordingly
         """
-        w = network.weights[0][0]
-        b = network.bias[0]
-        self.score[index] = gradient(w, b)
-        self.points.append((w, b))
+        for index in playing_index:
+            network = self.networks[index]
+            w = network.weights[0][0]
+            b = network.bias[0]
+            self.score[index] = gradient(w, b)
+            self.points.append((w, b))
         self.operation_done = True
 
     # Other action related functions should be put here
@@ -87,10 +111,11 @@ class Gradient(Problem):
         """
         print("Warning : run_display was not fully configured")
 
-    def end_display(self, step=1):
+    def end_display(self):
         """
         Shows what happened
         """
+        step = 1
         fig = plt.figure()
         ax = fig.gca(projection='3d')
 
@@ -123,7 +148,6 @@ class Gradient(Problem):
 
         if self.clean_after_shown:
             self.clean()
-
     # Other display functions should be put here
 
     def __name__(self):
@@ -134,15 +158,14 @@ class Gradient(Problem):
         Resets the problem
         """
         self.__init__(self.do_run_display, self.do_end_display,
-                      self.score, self.clean_after_shown, self.points)
+                      self.clean_after_shown, self.points)
 
     def clean(self):
         """
         Removes eventual values that stay upon reset
         """
         self.__init__(self.do_run_display, self.do_end_display,
-                      None, self.clean_after_shown)
-
+                      self.clean_after_shown, [])
 
 def gradient(X, Y):
     return(
@@ -153,8 +176,9 @@ def gradient(X, Y):
 
 
 def main(parameters):
-    H = Herd(1, 0, 0, size=2, mutation_amplitude=0.01)
-    P = Gradient()
+    P = Gradient(False, True)
+    H = Herd(P.nb_sensors, P.nb_actors,
+             0, size=2, mutation_amplitude=0.01)
     H.evolve(P, 200)
 
 if __name__ == "__main__":

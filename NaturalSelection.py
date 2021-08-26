@@ -14,7 +14,6 @@ import time
 
 
 
-
 class Herd(object):
     """
     Herd of networks that evolve by reproducing
@@ -40,7 +39,8 @@ class Herd(object):
             for i in range(self.size)
         ]
 
-    def evolve(self, problem, nb_generations=1, save_name=None):
+    def evolve(self, problem, nb_generations=1, save_evo_name=None,
+              final_herd_save_name = "Final_Herd"):
         """
         The idea is to make the AI evolve by aproximating
         the gradient descent
@@ -50,25 +50,27 @@ class Herd(object):
             proba_reproduction = self.performances(problem)
             # Reproduction (with mutation) of Networks
             self.reproduce(proba_reproduction)
-            if save_name != None:
-                save_network(self.members[0], save_name)
+            if save_evo_name != None:
+                save_network(self.members[0], save_evo_name)
 
         if problem.do_end_display:
             problem.end_display()
+
+        # Save the entire herd at the end
+        for member in self.members:
+            save_network(member, final_herd_save_name)
 
     def performances(self, problem):
         """
         Evaluates performances of all the networks on the problem
         then normalises them for probability operations
         """
-
         score = problem.experience(self.members)
         # Normalisation #
         #print(score)
         score = score - min(score)
         if list(score) == list(np.zeros(self.size)):
             score = np.ones(self.size)
-
         return(score/sum(score))
 
     def reproduce(self, proba_reproduction):
@@ -86,7 +88,7 @@ class Herd(object):
 # Copying network function
 
 def deepcopy_network(network):
-    copy_object = NDNN(
+    copy_network = NDNN(
         network.nb_sensors,
         network.nb_actors,
         network.nb_add_neurons,
@@ -94,7 +96,7 @@ def deepcopy_network(network):
         network.weights,
         network.bias
     )
-    return(copy_object)
+    return(copy_network)
 
 
 # Mutating network function

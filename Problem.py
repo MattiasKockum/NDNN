@@ -46,7 +46,7 @@ class Problem(object):
         while not self.experience_ended():
             self.problem_preparation()
             while not self.problem_ended():
-                self.action(playing_index)
+                self.action(self.playing_index)
                 if self.do_run_display:
                     self.run_display()
             self.reset()
@@ -60,8 +60,7 @@ class Problem(object):
 
     def problem_preparation(self):
         # Common
-        self.score = np.zeros((len(networks)))
-        playing_index = self.organisation()
+        self.playing_index = self.organisation()
         # Class specific
 
     def experience_ended(self):
@@ -70,6 +69,14 @@ class Problem(object):
         False otherwise
         """
         print("Warning  : experience_ended was not fully configured")
+        return(True)
+
+    def problem_ended(self):
+        """
+        True if the Problem is finished for whatever reason
+        False if it goes on
+        """
+        print("Warning  : problem_ended was not fully configured")
         return(True)
 
     def organisation(self):
@@ -81,14 +88,6 @@ class Problem(object):
         """
         print("Warning  : organisation was not fully configured")
         return(0)
-
-    def problem_ended(self):
-        """
-        True if the Problem is finished for whatever reason
-        False if it goes on
-        """
-        print("Warning  : problem_ended was not fully configured")
-        return(True)
 
     def state(self):
         """
