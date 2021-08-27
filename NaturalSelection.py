@@ -67,7 +67,6 @@ class Herd(object):
         """
         score = problem.experience(self.members)
         # Normalisation #
-        #print(score)
         score = score - min(score)
         if list(score) == list(np.zeros(self.size)):
             score = np.ones(self.size)
@@ -77,9 +76,15 @@ class Herd(object):
         """
         The copy of the successful networks with mutation
         """
+        # Copy according to performances
         new_members = [deepcopy_network(np.random.choice(
                         self.members, p=proba_reproduction))
                         for i in range(self.size)]
+        #father = self.members[maxindex(proba_reproduction)]
+        #new_members = [deepcopy_network(father)
+        #                for i in range(self.size)]
+
+        # Mutations
         for member in new_members:
             mutate_network(member, self.mutation_amplitude)
         self.members = new_members
@@ -93,10 +98,23 @@ def deepcopy_network(network):
         network.nb_actors,
         network.nb_add_neurons,
         network.function,
-        network.weights,
-        network.bias
+        deepcopy_weihgt(network.weights),
+        deepcopy_bias(network.bias)
     )
     return(copy_network)
+
+def deepcopy_weihgt(weights):
+    copy_weights = np.zeros(weights.shape)
+    for i in range(weights.shape[0]):
+        for j in range(weights.shape[1]):
+            copy_weights[i][j] = weights[i][j]
+    return(copy_weights)
+
+def deepcopy_bias(bias):
+    copy_bias = np.zeros(bias.shape)
+    for i in range(bias.shape[0]):
+        copy_bias[i] = bias[i]
+    return(copy_bias)
 
 
 # Mutating network function
@@ -113,6 +131,14 @@ def mutate_network(network, mutation_amplitude):
     network.weights += mutation_amplitude * mut_weight
     network.bias += mutation_amplitude * mut_biais
 
+def maxindex(L):
+    maxvalue = L[0]
+    maxindex = 0
+    for index, value in enumerate(L[1:]):
+        if value > maxvalue:
+            maxindex = index + 1
+            maxvalue = value
+    return(maxindex)
 
 
 

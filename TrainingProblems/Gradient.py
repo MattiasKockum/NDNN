@@ -56,6 +56,7 @@ class Gradient(Problem):
                 if self.do_run_display:
                     self.run_display()
             self.reset()
+        print(max(self.score))
         return(self.score)
 
     def experience_ended(self):
@@ -178,8 +179,12 @@ def gradient(X, Y):
 def main(parameters):
     P = Gradient(False, True)
     H = Herd(P.nb_sensors, P.nb_actors,
-             0, size=2, mutation_amplitude=0.01)
-    H.evolve(P, 200)
+             0, size=10, mutation_amplitude=0.02)
+    N = NDNN(P.nb_sensors, P.nb_actors, 0)
+    N.weights[0][0] = 0
+    N.bias[0] = -0.2
+    H.members = [deepcopy_network(N) for i in range(H.size)]
+    H.evolve(P, 50)
 
 if __name__ == "__main__":
     main(sys.argv)
