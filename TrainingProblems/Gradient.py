@@ -179,12 +179,12 @@ def gradient(X, Y):
 def main(parameters):
     P = Gradient(False, True)
     H = Herd(P.nb_sensors, P.nb_actors,
-             0, size=10, mutation_amplitude=0.02)
+             0, size=10, mutation_amplitude=0.01)
     N = NDNN(P.nb_sensors, P.nb_actors, 0)
     N.weights[0][0] = 0
     N.bias[0] = -0.2
-    H.members = [deepcopy_network(N) for i in range(H.size)]
-    H.evolve(P, 50)
+    H.members = [deepcopy_NDNN(N) for i in range(H.size)]
+    H.evolve(P, 500)
 
 if __name__ == "__main__":
     main(sys.argv)

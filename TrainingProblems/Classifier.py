@@ -17,6 +17,8 @@ import sys
 sys.path.append(".")
 sys.path.append("..")
 from AI import *
+sys.path.append("../ModelAI")
+from Classic import *
 
 
 
@@ -33,7 +35,7 @@ plane0 = np.array([
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
 ])
 
-plane1 = 1.1*np.array([
+plane1 = np.array([
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  1,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
@@ -46,17 +48,30 @@ plane1 = 1.1*np.array([
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
 ])
 
-plane2 = 1.1*np.array([
+plane2 = np.array([
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  1,  0,  0,  0,  0,  0,  0, -1,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  1,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0, -1,  0,  0,  0,  0,  0,  0,  1,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0, -1,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+])
+
+plane3 = np.array([
+    [-1, -1, -1, -1, -1,  1,  1,  1,  1,  1],
+    [-1, -1, -1, -1, -1,  1,  1,  1,  1,  1],
+    [-1, -1, -1, -1, -1,  1,  1,  1,  1,  1],
+    [-1, -1, -1, -1, -1,  1,  1,  1,  1,  1],
+    [-1, -1, -1, -1, -1,  1,  1,  1,  1,  1],
+    [ 1,  1,  1,  1,  1, -1, -1, -1, -1, -1],
+    [ 1,  1,  1,  1,  1, -1, -1, -1, -1, -1],
+    [ 1,  1,  1,  1,  1, -1, -1, -1, -1, -1],
+    [ 1,  1,  1,  1,  1, -1, -1, -1, -1, -1],
+    [ 1,  1,  1,  1,  1, -1, -1, -1, -1, -1]
 ])
 
 
@@ -68,7 +83,7 @@ class Classifier(Problem):
     The problem has to be coded in a copy of it
     just so that the function stay the same with every problem
     """
-    def __init__(self, plane = plane1,
+    def __init__(self, plane = plane1, nb_process=1,
                  do_run_display = False, do_end_display = False):
         # Common
         self.nb_sensors = 2
@@ -77,7 +92,9 @@ class Classifier(Problem):
         self.do_end_display = do_end_display
         # Class specific
         self.plane = plane
+        self.nb_process = nb_process
         self.size = len(plane)
+        self.nb_points = sum(sum(abs(plane)))
 
     def experience(self, networks):
         """
@@ -92,7 +109,7 @@ class Classifier(Problem):
             if self.do_run_display:
                 self.run_display(self.networks[self.playing_index[0]])
             self.reset()
-        print(max(self.score))
+            print("Max Score : {}".format(max(self.score)))
         return(self.score)
 
     def experience_preparation(self, networks):
@@ -148,10 +165,14 @@ class Classifier(Problem):
         Computes what the networks do and puts the score accordingly
         """
         network = self.networks[self.playing_index[0]]
-        output = network.process(self.state())
+        for i in range(self.nb_process):
+            output = network.process(self.state())[0]
+            print(output)
+        print("------")
         value = self.plane[self.x][self.y]
         if value != 0:
-            self.score[self.playing_index[0]] += 1/abs(value - output)
+            d = abs(value - output)
+            self.score[self.playing_index[0]] += np.exp(-d)/self.nb_points
         # Upgrade position
         self.x += 1
         if self.x == self.size:
@@ -178,7 +199,8 @@ class Classifier(Problem):
         Z = np.zeros(X.shape)
         for x in range(X.shape[0]):
             for y in range(X.shape[1]):
-                Z[y][x] = network.process([x, y])
+                for i in range(self.nb_process):
+                    Z[y][x] = network.process([x, y])
                 network.reset()
 
         # Plot the surface.
@@ -187,9 +209,9 @@ class Classifier(Problem):
         for x in range(self.size):
             for y in range(self.size):
                 value = self.plane[x][y]
-                if value > 1:
+                if value == 1:
                     ax.scatter([x], [y], [1], color="red")
-                elif value < 0:
+                elif value == -1:
                     ax.scatter([x], [y], [-1], color="blue")
 
         plt.show()
@@ -209,14 +231,14 @@ class Classifier(Problem):
         """
         Resets the problem
         """
-        self.__init__(self.plane,
+        self.__init__(self.plane, self.nb_process,
                       self.do_run_display, self.do_end_display)
 
     def clean(self):
         """
         Removes eventual values that stay upon reset
         """
-        self.__init__(self.plane,
+        self.__init__(self.plane, self.nb_process,
                       self.do_run_display, self.do_end_display)
 
 
@@ -225,10 +247,10 @@ class Classifier(Problem):
 
 def main(parameters):
     # General evolution
-    P = Classifier(plane1, do_run_display=False)
+    P = Classifier(plane3, 3, do_run_display=False)
     H = Herd(P.nb_sensors, P.nb_actors,
-             0, sigmoid, size=10, mutation_amplitude=0.5)
-    H.evolve(P, 100, "sauvenet")
+             8, sigmoid, size=10, mutation_amplitude=4)
+    H.evolve(P, 50, "sauvenet")
     # Exploitation
     N = H.members[0]
     P.run_display(N)

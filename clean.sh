@@ -1,3 +1,3 @@
 rm *score*
-rm *Network*
+rm *.svn*
 rm *nohup*

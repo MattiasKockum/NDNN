@@ -77,22 +77,20 @@ class Herd(object):
         The copy of the successful networks with mutation
         """
         # Copy according to performances
-        new_members = [deepcopy_network(np.random.choice(
+        new_members = [deepcopy_NDNN(np.random.choice(
                         self.members, p=proba_reproduction))
                         for i in range(self.size)]
-        #father = self.members[maxindex(proba_reproduction)]
-        #new_members = [deepcopy_network(father)
-        #                for i in range(self.size)]
-
         # Mutations
         for member in new_members:
             mutate_network(member, self.mutation_amplitude)
+        # Next line is a test
+        new_members[0] = self.members[maxindex(proba_reproduction)]
         self.members = new_members
 
 
 # Copying network function
 
-def deepcopy_network(network):
+def deepcopy_NDNN(network):
     copy_network = NDNN(
         network.nb_sensors,
         network.nb_actors,
