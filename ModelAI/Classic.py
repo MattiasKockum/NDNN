@@ -63,21 +63,3 @@ class ClassicalNetwork(NDNN):
             self.iterate()
         return(self.output())
 
-
-def displayNetworkGrid(net):
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-
-        # Make data.
-        X = np.arange(-0.5, 0.5, 0.01)
-        Y = np.arange(-0.5, 0.5, 0.01)
-        X, Y = np.meshgrid(X, Y)
-        Z = np.zeros(X.shape)
-        for x in range(X.shape[0]):
-            for y in range(X.shape[1]):
-                Z[x][y] = net.process([x, y])
-
-        # Plot the surface.
-        surf = ax.plot_wireframe(X, Y, Z, color="#0F0F0F0F")
-
-        plt.show()

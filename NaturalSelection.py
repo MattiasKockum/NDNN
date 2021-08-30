@@ -47,6 +47,7 @@ class Herd(object):
         """
         for generation in range(nb_generations):
             # Evaluation of performances
+            print("generation n°{}".format(generation))
             proba_reproduction = self.performances(problem)
             # Reproduction (with mutation) of Networks
             self.reproduce(proba_reproduction)
@@ -66,6 +67,7 @@ class Herd(object):
         then normalises them for probability operations
         """
         score = problem.experience(self.members)
+        print("         Best score : {}".format(max(score)))
         # Normalisation #
         score = score - min(score)
         if list(score) == list(np.zeros(self.size)):
@@ -83,7 +85,7 @@ class Herd(object):
         # Mutations
         for member in new_members:
             mutate_network(member, self.mutation_amplitude)
-        # Next line is a test
+        # Next line means score can't fall back
         new_members[0] = self.members[maxindex(proba_reproduction)]
         self.members = new_members
 
@@ -123,8 +125,13 @@ def mutate_network(network, mutation_amplitude):
     """
     N = network.nb_neurons
 
-    mut_weight = np.random.rand(N, N) - 0.5
-    mut_biais = np.random.rand(N) - 0.5
+    mut_weight = network.generate_weights()
+    mut_biais = network.generate_bias()
+
+    for i in range(N):
+        for j in range(N):
+            if network.weights[i][j] == 0:
+                mut_weight[i][j] = 0
 
     network.weights += mutation_amplitude * mut_weight
     network.bias += mutation_amplitude * mut_biais

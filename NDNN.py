@@ -46,17 +46,24 @@ class NDNN(object):
         self.values = np.zeros((self.nb_neurons))
 
         if type(weights) == type(None):
-            self.weights = (
-                np.random.rand(self.nb_neurons, self.nb_neurons)
-                - 0.5
-            )
+            self.weights = self.generate_weights()
         else:
             self.weights = weights
 
         if type(bias) == type(None):
-            self.bias = np.random.rand(self.nb_neurons) - 0.5
+            self.bias = self.generate_bias()
         else:
             self.bias = bias
+
+    def generate_weights(self, a=1):
+        A = np.zeros((self.nb_neurons, self.nb_neurons))
+        for i in range(self.nb_neurons):
+            for j in range(self.nb_neurons):
+                A[i][j] = np.random.pareto(a)*np.random.choice([1, -1])
+        return(A)
+
+    def generate_bias(self):
+        return(np.random.rand(self.nb_neurons) - 0.5)
 
     def process(self, input_data):
         """
@@ -114,6 +121,28 @@ def displayNetwork(network):
     ax.set_title("values of internal values, weights and bias")
     fig.tight_layout()
     plt.show()
+
+def displayNetworkGrid(net, period=1, size=10, step=0.1):
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+
+        # Make data.
+        a = size
+        b = -size
+        X = np.arange(b, a, step)
+        Y = np.arange(b, a, step)
+        X, Y = np.meshgrid(X, Y)
+        Z = np.zeros(X.shape)
+        for x in range(X.shape[0]):
+            for y in range(X.shape[1]):
+                for i in range(period):
+                    Z[x][y] = net.process([x*step+b, y*step+b])
+                net.reset()
+
+        # Plot the surface.
+        surf = ax.plot_wireframe(X, Y, Z, color="green")
+
+        plt.show()
 
 
 

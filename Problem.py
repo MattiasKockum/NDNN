@@ -151,6 +151,9 @@ def main(parameters):
              0, size=2, mutation_amplitude=0.01)
     H.evolve(P, 200, "sauvenet")
     # Exploitation
+    N = H.members[0] # should not be terrible
+    displayNetwork(N)
+    #P.run_display(N)
 
 if __name__ == "__main__":
     main(sys.argv)

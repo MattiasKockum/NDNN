@@ -49,16 +49,16 @@ plane1 = np.array([
 ])
 
 plane2 = np.array([
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  1,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 1,  1,  1,  0,  0,  0,  0,  0, -1,  0],
+    [ 0,  1,  0,  0,  0,  0,  0, -1, -1,  0],
+    [ 0,  0,  0,  0,  0,  0,  0, -1, -1,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
     [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0, -1,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
-    [ 0,  0,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0, -1,  0,  0,  0,  0,  0,  0,  0,  0],
+    [ 0, -1, -1,  0,  0,  0,  0,  0,  1,  0],
+    [ 0, -1,  0,  0,  0,  0,  0,  1,  1,  1],
+    [ 0, -1,  0,  0,  0,  0,  0,  0,  1,  0],
 ])
 
 plane3 = np.array([
@@ -109,7 +109,6 @@ class Classifier(Problem):
             if self.do_run_display:
                 self.run_display(self.networks[self.playing_index[0]])
             self.reset()
-            print("Max Score : {}".format(max(self.score)))
         return(self.score)
 
     def experience_preparation(self, networks):
@@ -167,8 +166,6 @@ class Classifier(Problem):
         network = self.networks[self.playing_index[0]]
         for i in range(self.nb_process):
             output = network.process(self.state())[0]
-            print(output)
-        print("------")
         value = self.plane[self.x][self.y]
         if value != 0:
             d = abs(value - output)
@@ -204,7 +201,7 @@ class Classifier(Problem):
                 network.reset()
 
         # Plot the surface.
-        surf = ax.plot_wireframe(X, Y, Z, color="#0F0F0F0F")
+        surf = ax.plot_wireframe(X, Y, Z, color="green")
 
         for x in range(self.size):
             for y in range(self.size):
@@ -247,12 +244,15 @@ class Classifier(Problem):
 
 def main(parameters):
     # General evolution
-    P = Classifier(plane3, 3, do_run_display=False)
+    P = Classifier(plane3, 4)
+    size = 100
     H = Herd(P.nb_sensors, P.nb_actors,
-             8, sigmoid, size=10, mutation_amplitude=4)
-    H.evolve(P, 50, "sauvenet")
+             7, segments, size=size, mutation_amplitude=0.1)
+    #H.members = [ClassicalNetwork([2, 2, 3, 2, 1], tanh) for i in range(size)]
+    H.evolve(P, 300, "sauvenet")
     # Exploitation
     N = H.members[0]
+    displayNetwork(N)
     P.run_display(N)
 
 
